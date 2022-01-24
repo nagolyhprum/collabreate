@@ -1,14 +1,14 @@
-import { 
-    text, 
-    background, 
-    MATCH, 
-    row, 
-    WRAP, 
-    column, 
+import {
+    text,
+    background,
+    MATCH,
+    row,
+    WRAP,
+    column,
     grow
 } from "./components";
 
-const Header = (modules : Modules) => row<AdminState, AdminState>(MATCH, 64, [
+const Header = () => row<AdminState, AdminState>(MATCH, 64, [
     background("red")
 ]);
 
@@ -22,21 +22,21 @@ const LeftSideBar = (modules : Modules) => column<AdminState, AdminState>(300, M
     ])
 ]);
 
-const Main = (modules : Modules) => row<AdminState, AdminState>(0, MATCH, [
+const Main = () => row<AdminState, AdminState>(0, MATCH, [
     grow(true),
     background("blue")
 ]);
 
-const RightSidebar = (modules : Modules) => row<AdminState, AdminState>(300, MATCH, [
+const RightSidebar = () => row<AdminState, AdminState>(300, MATCH, [
     background("yellow")
 ]);
 
 export const Admin = (modules : Modules) => column<AdminState, AdminState>(MATCH, MATCH, [
-    Header(modules),
+    Header(),
     row(MATCH, 0, [
         grow(true),
         LeftSideBar(modules),
-        Main(modules),
-        RightSidebar(modules)
+        Main(),
+        RightSidebar()
     ]),
 ])

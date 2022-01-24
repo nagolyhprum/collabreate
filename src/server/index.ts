@@ -97,11 +97,11 @@ export default (config : {
         if(req.path === "/admin") {
             res.writeHead(200, {
                 "Content-type" : "text/html"
-            });  
+            });
             const state : AdminState = {
                 selectedDirectory : "",
                 __ : true
-            }     
+            }
             const {
                 html,
                 js
@@ -113,7 +113,7 @@ export default (config : {
                 },
                 global : state,
                 local : state
-            })     
+            })
             res.write(document({
                 html : html.join(""),
                 js : js.join("\n")

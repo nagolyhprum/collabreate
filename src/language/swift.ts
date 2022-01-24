@@ -90,8 +90,8 @@ ${tabs}}`;
 		const args = code.args.map(it => render(it, `${tabs}\t\t`));
 		const sideEffect = code.sideEffect;
 		return `${sideEffect ? tabs : ""}invoke(
-${tabs}\ttarget : ${target}, 
-${tabs}\tname : "${fun}", 
+${tabs}\ttarget : ${target},
+${tabs}\tname : "${fun}",
 ${tabs}\targs : [
 ${tabs}\t\t${args.join(`,\n${tabs}\t\t`)}
 ${tabs}\t]

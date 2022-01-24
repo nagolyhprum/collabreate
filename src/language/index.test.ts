@@ -16,7 +16,6 @@ import {
 	block,
 	fallback
 } from "./";
-import Delete from "./images/delete.svg";
 
 describe("language", () => {
 	it("works with object assign", () => {
@@ -31,10 +30,10 @@ describe("language", () => {
 		const scope = {
 			component: {
 				background : null
-			},			
+			},
 		};
 		expect(scope.component.background).toEqual(null);
-		execute(output, scope);		
+		execute(output, scope);
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		expect(scope.component.background).toEqual(background);
 	});
@@ -82,12 +81,12 @@ describe("language", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			state: {
-				numbers: Array<number>
+				numbers: number[]
 			}
 		}>(({ _, state }) =>
 			_.map(state.numbers, ({
 				item
-			}) => 
+			}) =>
 				result(mult(item, 2))
 			), dependencies
 		);
@@ -151,12 +150,12 @@ describe("language", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			state: {
-				data: Array<{
+				data: {
 					key: string,
 					content: string
-				}>
+				}[]
 			}
-		}>(({ Date, Math }) => 
+		}>(({ Date, Math }) =>
 			declare(({
 				number,
 				key
@@ -176,10 +175,10 @@ describe("language", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			state: {
-				data: Array<{
+				data: {
 					key: string
 					content: string
-				}>
+				}[]
 			},
 			local: {
 				key: string
@@ -194,8 +193,8 @@ describe("language", () => {
 			_
 		}) => set(state.data, _.map(state.data, ({
 			item
-		}) => 
-			condition(eq(item.key, local.key), 
+		}) =>
+			condition(eq(item.key, local.key),
 				result({
 					key: item.key,
 					content: event.value
@@ -236,7 +235,7 @@ describe("language", () => {
 		const depenencies = new Set([]);
 		const output = code<{
 			state: {
-				data: Array<string>,
+				data: string[],
 				index: number
 			}
 		}>(({
@@ -272,9 +271,9 @@ describe("language", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			state: {
-				data : Array<{
+				data : {
 					content: string
-				}>,
+				}[],
 				index: number
 			}
 		}>(({
@@ -352,7 +351,7 @@ describe("language", () => {
 		expect(render(output, "")).toMatchSnapshot();
 		expect(execute(output, {})).toBe(true);
 	});
-	it("supports complicated setups", () => {		
+	it("supports complicated setups", () => {
 		const dependencies = new Set([]);
 		const output = code(({
 			state,
@@ -365,10 +364,10 @@ describe("language", () => {
 				declare((variables) => [
 					set(variables.key, add("_", Date.now().toString(16), Math.random().toString(16).substr(2))),
 					set(variables.route, symbol(state.routes, sub(state.routes?.length ?? 0, 2)).adapter ?? ""),
-					condition(eq(variables.route, "list"), 
+					condition(eq(variables.route, "list"),
 						set(state.list, variables.key)
 					),
-					condition(eq(variables.route, "task"), 
+					condition(eq(variables.route, "task"),
 						set(state.task.list, variables.key)
 					),
 					set(state.lists, _.concat(state.lists, [{
@@ -443,8 +442,8 @@ describe("language", () => {
 			], {
 				list: _.find<{
 					key: string
-					name: string										
-				}>(state.lists, ({ item }) => 
+					name: string
+				}>(state.lists, ({ item }) =>
 					result(eq(item.key, local.list))
 				, {
 					key: "",
@@ -480,7 +479,7 @@ describe("language", () => {
 	});
 	it("allows renames of functions", () => {
 		const dependencies = new Set([]);
-		const output = code(({ _, console }) => _.map([], ({ item }) => 
+		const output = code(({ _, console }) => _.map([], ({ item }) =>
 			declare(({
 				string
 			}) => [
@@ -498,7 +497,7 @@ describe("language", () => {
 		}) => [
 			console.log(length)
 		], {
-			length: _.filter([true, false], ({ item }) => 
+			length: _.filter([true, false], ({ item }) =>
 				result(item)
 			).length
 		}), dependencies);
@@ -517,7 +516,7 @@ describe("language", () => {
 		const output = code<{
 			needle: number,
 			list: number[]
-		}>(({ 
+		}>(({
 			console,
 			_,
 			needle,
@@ -527,7 +526,7 @@ describe("language", () => {
 			needle
 		}) => [console.log(_.some(list, ({
 			item
-		}) => 
+		}) =>
 			result(eq(item, needle))
 		))], {
 			needle,
@@ -549,7 +548,7 @@ describe("language", () => {
 	});
 	it("can pass arrays as args", () => {
 		const dependencies = new Set([]);
-		const output = code(({ 
+		const output = code(({
 			console
 		}) => console.log([1, 2, 3])
 		, dependencies);
@@ -568,25 +567,25 @@ describe("language", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			object: Record<string, string> | null
-		}>(({ 
+		}>(({
 			object,
 			console
 		}) => console.log(symbol(fallback(object, {}), "a"))
 		, dependencies);
 		expect(render(output, "")).toMatchSnapshot();
 	});
-	it("fallback is chainable", () => {		
+	it("fallback is chainable", () => {
 		const dependencies = new Set([]);
 		const output = code<{
 			object: Record<string, string> | null
-		}>(({ 
+		}>(({
 			object,
 			console
 		}) => console.log(fallback(object, {}).a)
 		, dependencies);
 		expect(render(output, "")).toMatchSnapshot();
 	});
-	it("conditionally sets", () => {		
+	it("conditionally sets", () => {
 		const dependencies = new Set([]);
 		const output = code<unknown>(({
 			console
@@ -616,7 +615,7 @@ describe("language", () => {
 		expect(log).toBeCalledWith("test");
 		expect(log).toBeCalledTimes(1);
 	});
-	it("does not fallback", () => {		
+	it("does not fallback", () => {
 		const dependencies = new Set([]);
 		const output = code<unknown>(({
 			console
@@ -636,7 +635,7 @@ describe("language", () => {
 		expect(log).toBeCalledWith("success");
 		expect(log).toBeCalledTimes(1);
 	});
-	it("does fallback", () => {		
+	it("does fallback", () => {
 		const dependencies = new Set([]);
 		const output = code<unknown>(({
 			console

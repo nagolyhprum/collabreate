@@ -22,9 +22,9 @@ const validate = <Global extends GlobalState, Local>(component : Component<Globa
 }
 
 const tag = (name : Tag) => <Global extends GlobalState, Local>(
-    width : number, 
-    height : number, 
-    props : Array<ComponentFromConfig<Global, Local> | string>
+    width : number,
+    height : number,
+    props : (ComponentFromConfig<Global, Local> | string)[]
 ) : ComponentFromConfig<Global, Local> => (
     config
 ) => {
@@ -42,8 +42,8 @@ const tag = (name : Tag) => <Global extends GlobalState, Local>(
 }
 
 const applyProps = <Global extends GlobalState, Local>(
-    component : Component<Global, Local>, 
-    props : Array<ComponentFromConfig<Global, Local> | string>, 
+    component : Component<Global, Local>,
+    props : (ComponentFromConfig<Global, Local> | string)[],
     config : ComponentConfig<Global, Local>
 ) => {
     const cache = config.parent;
@@ -86,7 +86,7 @@ const event = <Global extends GlobalState, Local, Key extends keyof ComponentEve
     }
 }
 
-//TAGS
+// TAGS
 
 export const row = tag("row");
 export const column = tag("column");

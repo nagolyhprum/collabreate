@@ -34,13 +34,13 @@ export const invoke = ({
 	sideEffect
 });
 
-export const proxy = ({ 
-	scope, 
-	path, 
-	dependencies 
+export const proxy = ({
+	scope,
+	path,
+	dependencies
 }: {
-	scope: any, 
-	path: unknown[], 
+	scope: any,
+	path: unknown[],
 	dependencies: Set<string>
 }): any =>
 	new Proxy(
@@ -227,11 +227,11 @@ class Result {
 
 export function symbol<T>(variable : T[], index: number): T;
 export function symbol<
-	K extends string | number | symbol, 
+	K extends string | number | symbol,
 	V
 >(variable : Record<K, V>, index: K): V;
 export function symbol(
-	variable: any, 
+	variable: any,
 	index: any
 ): any {
 	const path = useCode(variable);
@@ -407,7 +407,7 @@ export const declare = <T extends {
 
 export const block = (input: unknown[]): ProgrammingLanguage => declare(() => input, {});
 
-const getFromScope = (name: Array<string | number | symbol>, scope: any, prop : string) => {
+const getFromScope = (name: (string | number | symbol)[], scope: any, prop : string) => {
 	if (name.length === 0) {
 		for(let i = scope.length - 1; i >= 0; i--) {
 			if(prop in scope[i]) {
@@ -447,7 +447,7 @@ export const execute = <T>(
 				_: {
 					toLowerCase: (input : string) => input.toLowerCase(),
 					split: (input : string, token : string) => input.split(new RegExp(token)) ,
-					concat: <T>(...items: Array<Array<T>>) : Array<T> => {
+					concat: <T>(...items: T[][]) : T[] => {
 						return items.reduce((total, list) => list ? [...total, ...list] : total, [] as T[]);
 					},
 					toString: (input : unknown) => `${input}`,
@@ -589,7 +589,7 @@ export const execute = <T>(
 	return result;
 };
 
-const executeBody = (body: ProgrammingLanguage[], scope: Array<any>) => {
+const executeBody = (body: ProgrammingLanguage[], scope: any[]) => {
 	let result;
 	for(let i = 0; i < body.length; i++) {
 		result = executeWithScope(body[i], scope);
@@ -602,7 +602,7 @@ const executeBody = (body: ProgrammingLanguage[], scope: Array<any>) => {
 
 const executeWithScope = (
 	code: ProgrammingLanguage,
-	scope: Array<any>
+	scope: any[]
 ): any => {
 	if(code === undefined || code === null) {
 		return code;
@@ -638,7 +638,7 @@ const executeWithScope = (
 		const prop = target.pop();
 		const variable = getFromScope(target, scope, prop as unknown as string);
 		if(
-			variable !== undefined && variable !== null && 
+			variable !== undefined && variable !== null &&
 			prop !== undefined && prop !== null
 		) {
 			const value = executeWithScope(code.value, scope);
@@ -648,7 +648,7 @@ const executeWithScope = (
 		return;
 	}
 	case "invoke": {
-		const target = executeWithScope(code.target, scope);		
+		const target = executeWithScope(code.target, scope);
 		const prop = code.fun;
 		const args = code.args.map((it) => executeWithScope(it, scope));
 		const fun = getFromScope([prop], scope, "");
@@ -807,7 +807,7 @@ ${tabs}}`;
 	}
 	case "defined": {
 		const value = render(code.item, "");
-		return `${value} !== undefined && ${value} !== null`; 
+		return `${value} !== undefined && ${value} !== null`;
 	}
 	case "fallback": {
 		const value = render(code.value, tabs);

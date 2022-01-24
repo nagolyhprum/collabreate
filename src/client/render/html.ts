@@ -47,8 +47,8 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
     value,
     props,
 } : {
-    name : Key, 
-    value : Component<Global, Local>[Key], 
+    name : Key,
+    value : Component<Global, Local>[Key],
     props : TagProps
 }) : TagProps => {
     switch(name) {
@@ -83,7 +83,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
             return props;
         case "onClick":
         case "children":
-        case "text": 
+        case "text":
         case "adapter":
         case "observe":
         case "data":
@@ -110,7 +110,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
     local : Local
 }) => {
     switch(name) {
-        case "text": 
+        case "text":
             output.html.push(value?.toString() ?? "")
             return;
         case "children":
@@ -121,7 +121,8 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
                 output
             }))
             return;
-        case "adapter":
+        case "adapter": {
+
             const adapter = value as Component<Global, Local>["adapter"]
             const data = component.data
             if(data && adapter) {
@@ -145,15 +146,17 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
                 })
             }
             return;
-        case "onClick":
+        }
+        case "onClick": {
             const id = `${name}:${component.id}`
             if(!output.cache.has(id)) {
                 output.cache.add(id)
                 output.js.push(`setEvent("${component.id}", "${name}", function(_a) {`);
-                output.js.push(...(value as Array<Function>).map(getFunctionBody))
+                output.js.push(...(value as Array<() => void>).map(getFunctionBody))
                 output.js.push("});");
             }
             return;
+        }
         case "id":
         case "width":
         case "height":
@@ -164,10 +167,10 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "data":
             return;
     }
-    failed(name);    
+    failed(name);
 }
 
-const keys = <T>(input : T) => Object.keys(input) as Array<keyof T>
+const keys = <T>(input : T) => Object.keys(input) as (keyof T)[]
 
 const handle = <Global extends GlobalState, Local>({
     component,
@@ -192,13 +195,13 @@ const handle = <Global extends GlobalState, Local>({
 
     const props = keys(component).reduce((props, name) => {
         return handleProp<Global, Local, typeof name>({
-            name, 
+            name,
             props,
             value: component[name]
         });
-    }, <TagProps>{
+    }, {
         style : {}
-    })
+    } as TagProps)
 
     const render = Object.keys(props).map(key => {
         const value = props[key]
@@ -212,7 +215,7 @@ const handle = <Global extends GlobalState, Local>({
             }
         }
     }).filter(_ => _).join(" ")
-    
+
     output.html.push(`<${name} ${render}>`)
 
     keys(component).forEach((name) => {
@@ -231,6 +234,6 @@ const handle = <Global extends GlobalState, Local>({
     return output
 }
 
-const getFunctionBody = (func : Function) : string => {
+const getFunctionBody = (func : () => void) : string => {
     return func.toString().match(/function[^{]+\{([\s\S]*)\}$/)?.[1].trim() ?? ""
 }
