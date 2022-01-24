@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`language allows indexing of variables and numbers 1`] = `
+"console.log(state.data[1]);
+console.log(state.data[state.index]);
+state.data[0] = \\"-a\\";
+state.data[state.index] = \\"-c\\";"
+`;
+
+exports[`language allows just true 1`] = `"return true;"`;
+
+exports[`language allows renames of declare 1`] = `
+"var a = 0;
+var b = a;
+console.log(b);"
+`;
+
+exports[`language allows renames of functions 1`] = `
+"_.map([], function (args) {
+	var item = args.item;
+	var string = item;
+	console.log(string);
+	return state
+})"
+`;
+
+exports[`language basic setup works 1`] = `
+"var a = 0, b = 0;
+a = 1.1;
+b = 2.9;
+console.log(\\"test\\", (Math.round(a) + Math.floor(b)));"
+`;
+
+exports[`language can get length from a chain 1`] = `
+"var length = _.filter([true, false], function (args) {
+	var item = args.item;
+	return item;
+	return state
+}).length;
+console.log(length);"
+`;
+
+exports[`language chains functions 1`] = `"(\\"_\\" + Math.random().toString(16).substr(2) + Date.now().toString(16))"`;
+
+exports[`language chains on symbol 1`] = `
+"console.log(state.data[0].content);
+console.log(state.data[state.index].content);"
+`;
+
+exports[`language fallback can be a symbol target 1`] = `"console.log((object === null || object === undefined ? {} : object).a);"`;
+
+exports[`language fallback is chainable 1`] = `"console.log((object === null || object === undefined ? {} : object).a);"`;
+
+exports[`language generates code for explicit setter 1`] = `"state.holder = state.value;"`;
+
+exports[`language handles - in property names 1`] = `
+"console.log({
+	\\"a-b\\": \\"a-b\\",
+	a: \\"a\\"
+});"
+`;
+
+exports[`language passes functions to objects 1`] = `
+"console.log({
+	callback: function (args) {
+		console.log(\\"HERE\\");
+		return state
+	}
+});"
+`;
+
+exports[`language support modified chaining 1`] = `
+"var number = 0, key = \\"\\";
+number = Math.random();
+key = number.toString(16);
+number = Date.now();
+key = (\\"_\\" + key.substr(2) + number.toString(16));"
+`;
+
+exports[`language supports complicated setups 1`] = `
+"if(!((state.add_list === \\"\\"))) {
+	var route = \\"\\", key = \\"\\";
+	key = (\\"_\\" + Date.now().toString(16) + Math.random().toString(16).substr(2));
+	route = state.routes[(state.routes.length - 2)].adapter;
+	if((route === \\"list\\")) {
+		state.list = key;
+	}
+	if((route === \\"task\\")) {
+		state.task.list = key;
+	}
+	state.lists = _.concat(state.lists, [{
+		name: state.add_list,
+		key: key
+	}]);
+	navigation.pop();
+}"
+`;
+
+exports[`language supports conditions 1`] = `
+"if((state.a > state.b)) {
+	console.log(\\"a is bigger than b\\");
+} else {
+	console.log(\\"b is bigger than a\\");
+}"
+`;
+
+exports[`language supports declares with code 1`] = `
+"var list = _.find(state.lists, function (args) {
+	var item = args.item;
+	return (item.key === local.list);
+	return state
+}, {
+	key: \\"\\",
+	name: \\"\\"
+});
+if(!((local.list === \\"\\"))) {
+	component.visible = true;
+	component.text = list.name;
+} else {
+	component.visible = false;
+}"
+`;
+
+exports[`language supports functions as arguments 1`] = `
+"_.map(state.numbers, function (args) {
+	var item = args.item;
+	return (item * 2);
+	return state
+})"
+`;
+
+exports[`language supports timeout 1`] = `
+"setTimeout(function (args) {
+	console.log(\\"test\\");
+	return state
+}, 300)"
+`;
+
+exports[`language works for deeply nested conditions 1`] = `
+"state.data = _.map(state.data, function (args) {
+	var item = args.item;
+	if((item.key === local.key)) {
+		return {
+			key: item.key,
+			content: event.value
+		};
+	} else {
+		return item;
+	}
+	return state
+});"
+`;
+
+exports[`language works with object assign 1`] = `"component.background = \\"white\\";"`;
