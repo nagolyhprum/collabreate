@@ -8,7 +8,9 @@
     "test": "jest",
     "parcel-watch": "parcel watch src/server/index.ts --out-dir dist --out-file index.js --target node --no-cache",
     "nodemon": "nodemon demo/index.js",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "build": "parcel build src/server/index.ts --out-dir dist --out-file index.js --target node",
+    "start": "node demo/index.js"
   },
   "author": "",
   "license": "ISC",
