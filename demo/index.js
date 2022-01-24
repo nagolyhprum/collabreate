@@ -1,4 +1,4 @@
-const express = require("express");
+const http = require("http");
 const {
     default : collabreate,
     Components,
@@ -8,9 +8,7 @@ const {
     Deploy,
 } = require("../dist/index.js");
 
-const app = express();
-
-app.use(collabreate({
+const server = http.createServer(collabreate({
     database : {
         get() {
             return []
@@ -23,8 +21,8 @@ app.use(collabreate({
         Commit,
         Deploy,
     ]
-}));
+}))
 
-app.listen(process.env.PORT || 80, () => {
+server.listen(process.env.PORT || 80, () => {
     console.log("listening on port 80");
 });
