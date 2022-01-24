@@ -1,4 +1,4 @@
-import { ClientRequest, ServerResponse } from "http"
+import { IncomingMessage, ServerResponse } from "http"
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
@@ -93,8 +93,8 @@ export default (config : {
         }
     }
     config.modules.map(it => it(modules))
-    return async (req : ClientRequest, res : ServerResponse) => {
-        if(req.path === "/admin") {
+    return async (req : IncomingMessage, res : ServerResponse) => {
+        if(req.url === "/admin") {
             res.writeHead(200, {
                 "Content-type" : "text/html"
             });
