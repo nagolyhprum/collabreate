@@ -1,25 +1,25 @@
+import { condition, eq, set } from "../../language";
 import {
     text,
     button,
-    MATCH,
     WRAP,
     onClick,
     observe
 } from "../components";
 
-export const Directory = <Local>(name : string) => button<AdminState, Local>(MATCH, WRAP, [
+export const Tab = <Local>(name : string) => button<AdminState, Local>(WRAP, WRAP, [
     onClick(({
         global
-    }) => {
-        global.selectedDirectory = name.toLowerCase()
-    }),
+    }) => set(global.selectedDirectory, name.toLowerCase())),
     observe(({
         global,
         event
-    }) => {
-        event.background = global.selectedDirectory === name.toLowerCase() ? "red" : "blue";
-    }),
-    text(MATCH, WRAP, [
+    }) => condition(eq(global.selectedDirectory, name.toLowerCase()), set(
+        event.background, "red"
+    )).otherwise(set(
+        event.background, "blue"
+    ))),
+    text(WRAP, WRAP, [
         name
     ])
 ])

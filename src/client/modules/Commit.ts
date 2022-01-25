@@ -1,5 +1,5 @@
-import { Directory } from "./shared"
+import { Tab } from "./shared"
 
 export const Commit = (modules : Modules) => {
-    modules.add("module:directory", Directory("Commit"))
+    modules.add("module:tab", Tab("Commit"))
 }

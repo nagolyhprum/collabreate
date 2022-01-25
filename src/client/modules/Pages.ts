@@ -1,5 +1,5 @@
-import { Directory } from "./shared"
+import { Tab } from "./shared"
 
 export const Pages = (modules : Modules) => {
-    modules.add("module:directory", Directory("Pages"))
+    modules.add("module:tab", Tab("Pages"))
 }

@@ -1,4 +1,5 @@
-import { MATCH, WRAP } from "../components";
+import { render as renderJS, code, execute } from "../../language";
+import { generateId, MATCH, WRAP } from "../components";
 
 export const render = <Global extends GlobalState, Local>(
     root : ComponentFromConfig<Global, Local>
@@ -147,12 +148,16 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             }
             return;
         }
+        case "observe":
         case "onClick": {
             const id = `${name}:${component.id}`
             if(!output.cache.has(id)) {
                 output.cache.add(id)
-                output.js.push(`setEvent("${component.id}", "${name}", function(_a) {`);
-                output.js.push(...(value as Array<() => void>).map(getFunctionBody))
+                output.js.push(`setEvent("${component.id}", "${name}", function(local, event) {`);
+                (value as Array<(config : any) => ProgrammingLanguage>).forEach((callback) => {
+                    const generated = code(callback, new Set([]));
+                    output.js.push(renderJS(generated, "\t"))
+                })
                 output.js.push("});");
             }
             return;
@@ -163,7 +168,6 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "name":
         case "background":
         case "grow":
-        case "observe":
         case "data":
             return;
     }
@@ -186,11 +190,14 @@ const handle = <Global extends GlobalState, Local>({
     const name = getTagName(component.name);
 
     if(component.observe) {
-        component.observe.forEach(callback => callback({
-            global,
-            local,
-            event : component
-        }))
+        component.observe.forEach(callback => {
+            const generated = code(callback, new Set([]))
+            execute(generated, {
+                global,
+                local,
+                event : component
+            })
+        })
     }
 
     const props = keys(component).reduce((props, name) => {
@@ -232,8 +239,4 @@ const handle = <Global extends GlobalState, Local>({
     output.html.push(`</${name}>`)
 
     return output
-}
-
-const getFunctionBody = (func : () => void) : string => {
-    return func.toString().match(/function[^{]+\{([\s\S]*)\}$/)?.[1].trim() ?? ""
 }

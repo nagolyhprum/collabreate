@@ -81,7 +81,7 @@ const event = <Global extends GlobalState, Local, Key extends keyof ComponentEve
         const { parent } = config;
         parent.id = parent.id || id
         parent[name] = parent[name] || []
-        parent[name]?.push(callback as () => void);
+        parent[name]?.push(callback as () => ProgrammingLanguage);
         return parent;
     }
 }

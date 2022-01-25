@@ -34,8 +34,8 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
 }
 
 type ComponentEvents<Global extends GlobalState, Local> = {
-    observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => void>
-    onClick?: Array<(event : EventConfig<Global, Local, null>) => void>
+    observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => ProgrammingLanguage>
+    onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
 }
 
 type Component<Global extends GlobalState, Local> = ComponentEvents<Global, Local> & {
@@ -84,12 +84,13 @@ interface Database {
     remove(table : Table, id : string) : Promise<void>
 }
 
-type ModuleName = "module:directory"
+type ModuleName = "module:tab"
 
 type Modules = {
     _map : Record<string, any[]>
-    add : (name : ModuleName, value : any) => void
+    set : (name : ModuleName, value : any) => void
     get : (name : ModuleName) => any
+    add : (name : ModuleName, value : any) => void
     list : (name : ModuleName) => any[]
 }
 

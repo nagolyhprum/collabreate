@@ -655,5 +655,25 @@ describe("language", () => {
 		expect(log).toBeCalledWith("success");
 		expect(log).toBeCalledTimes(1);
 	});
+	it("can set a string", () => {
+		const dependencies = new Set([]);
+		const output = code<{
+			ref : {
+				value : string
+			}
+		}>(({
+			ref
+		}) => block([
+			set(ref.value, "value")
+		]), dependencies);
+		const scope = {
+			ref : {
+				value : null
+			}
+		}
+		expect(render(output, "")).toMatchSnapshot()
+		execute(output, scope)
+		expect(scope.ref.value).toBe("value")
+	})
 
 });

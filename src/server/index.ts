@@ -33,29 +33,42 @@ function setEvent(id, name, callback) {
     events[id] = events[id] || {};
     events[id][name] = callback;
 }
+function Component(component) {
+    const cache = {};
+    return new Proxy(component, {
+        set : function(target, key, value) {
+            if(cache[key] !== value) {
+                cache[key] = value;
+                switch(key) {
+                    case "background":
+                        target.style.background = value;
+                        return;
+                }
+            }
+        }
+    });
+}
 function update() {
     listeners.forEach(function (listener) {
-        listener.callback({
-            global : global,
-            component : Component(listner.component)
-        })
+        listener.callback(null, listener.component)
     })
 }
 function bind(root) {
     root.querySelectorAll("[data-id]").forEach(function(component) {
         const toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
+            const callback = toBind[event];
             if(event === "onClick") {
                 component.onclick = function() {
-                    toBind[event]({
-                        global : global
-                    });
+                    callback(/*local, event*/);
                     update();
                 };
             } else if(event === "observe") {
+                const wrapped = Component(component);
+                callback(null, wrapped)
                 listeners.push({
-                    component : component,
-                    callback : toBind[event]
+                    component : wrapped,
+                    callback : callback
                 });
             }
         });
@@ -80,13 +93,15 @@ export default (config : {
 }) => {
     const modules : Modules = {
         _map : {},
+        set(name, value) {
+            this._map[name] = value;
+        },
+        get(name) {
+            return this._map[name]
+        },
         add(name, value) {
             this._map[name] = this._map[name] || [];
             this._map[name].push(value);
-        },
-        get(name) {
-            const list = this._map[name]
-            return list[list.length - 1]
         },
         list(name) {
             return this._map[name]
@@ -99,7 +114,7 @@ export default (config : {
                 "Content-type" : "text/html"
             });
             const state : AdminState = {
-                selectedDirectory : "",
+                selectedDirectory : "components",
                 __ : true
             }
             const {

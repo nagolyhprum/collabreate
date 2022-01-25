@@ -40,6 +40,8 @@ exports[`language can get length from a chain 1`] = `
 console.log(length);"
 `;
 
+exports[`language can set a string 1`] = `"ref.value = \\"value\\";"`;
+
 exports[`language chains functions 1`] = `"(\\"_\\" + Math.random().toString(16).substr(2) + Date.now().toString(16))"`;
 
 exports[`language chains on symbol 1`] = `
