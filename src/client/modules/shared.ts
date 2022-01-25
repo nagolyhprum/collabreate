@@ -4,10 +4,12 @@ import {
     button,
     WRAP,
     onClick,
-    observe
+    observe,
+    padding
 } from "../components";
 
 export const Tab = <Local>(name : string) => button<AdminState, Local>(WRAP, WRAP, [
+    padding(16),
     onClick(({
         global
     }) => set(global.selectedDirectory, name.toLowerCase())),

@@ -1,5 +1,5 @@
 import { render as renderJS, code, execute } from "../../language";
-import { generateId, MATCH, WRAP } from "../components";
+import { MATCH, WRAP } from "../components";
 
 export const render = <Global extends GlobalState, Local>(
     root : ComponentFromConfig<Global, Local>
@@ -26,7 +26,7 @@ export const render = <Global extends GlobalState, Local>(
 }
 
 function failed(_ : never) {
-    console.log("this should never happen")
+    throw new Error("this should never happen")
 }
 
 const getTagName = (name : Tag) : string => {
@@ -41,6 +41,17 @@ const getTagName = (name : Tag) : string => {
             return "div";
     }
     failed(name);
+}
+
+const handleBox = (name : string, input : BoxProp<Array<unknown> | number>, props : TagProps) => {
+    keys(input).forEach(key => {
+        const value = input[key]
+        if(value instanceof Array) {
+            props.style[`${name}-${key}`] = value.map(it => typeof it === "number" ? `${it}px` : it).join(" ")
+        } else {
+            props.style[`${name}-${key}`] = `${input[key]}px`
+        }
+    })
 }
 
 const handleProp = <Global extends GlobalState, Local, Key extends keyof Component<Global, Local>>({
@@ -70,7 +81,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "name":
             if(value === "row" || value === "column") {
                 props.style.display = "flex";
-                props.style["flex-direction"] = value;
+                props.style["flex-direction"] = value.toString();
             }
             return props;
         case "background":
@@ -82,13 +93,18 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "id":
             props["data-id"] = value?.toString() ?? "";
             return props;
+        case "padding":
+        case "margin":
+        case "border":
+            handleBox(name, value as BoxProp<number | Array<unknown>>, props)
+            return props;
         case "onClick":
+        case "observe":
         case "children":
         case "text":
         case "adapter":
-        case "observe":
         case "data":
-            // TODO
+            // DO NOTHING
             return props;
     }
     failed(name);
@@ -123,7 +139,6 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             }))
             return;
         case "adapter": {
-
             const adapter = value as Component<Global, Local>["adapter"]
             const data = component.data
             if(data && adapter) {
@@ -162,6 +177,9 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             }
             return;
         }
+        case "padding":
+        case "margin":
+        case "border":
         case "id":
         case "width":
         case "height":

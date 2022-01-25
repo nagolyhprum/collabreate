@@ -86,6 +86,63 @@ const event = <Global extends GlobalState, Local, Key extends keyof ComponentEve
     }
 }
 
+const box = <Key extends keyof ComponentBoxProps, Type extends UnwrapBoxProp<ComponentBoxProps[Key]>>(
+    name : Key
+) => <
+    Global extends GlobalState,
+    Local
+>(
+    input : Type | [Type] | [Type, Type] | [Type, Type, Type, Type] | {
+        top?: Type
+        right?: Type
+        bottom?: Type
+        left?: Type
+    }
+) : ComponentFromConfig<Global, Local> => (config) => {
+    const {parent} = config
+    if(input instanceof Array) {
+        if(input.length === 1) {
+            parent[name] = {
+                top : input[0],
+                right : input[0],
+                bottom : input[0],
+                left : input[0],
+            } as any
+        } else if(input.length === 2) {
+            parent[name] = {
+                top : input[0],
+                right : input[1],
+                bottom : input[0],
+                left : input[1],
+            } as any
+        } else if(input.length === 4) {
+            parent[name] = {
+                top : input[0],
+                right : input[1],
+                bottom : input[2],
+                left : input[3],
+            } as any
+        }
+    } else {
+        const box = input as any
+        if(typeof box === "object" && ("top" in box || "right" in box || "bottom" in box || "left" in box)) {
+            config.parent[name] = input as any
+        } else {
+            parent[name] = {
+                top : input,
+                right : input,
+                bottom : input,
+                left : input,
+            } as any
+        }
+    }
+    return parent
+}
+
+export const margin = box("margin")
+export const padding = box("padding")
+export const border = box("border")
+
 // TAGS
 
 export const row = tag("row");

@@ -38,7 +38,24 @@ type ComponentEvents<Global extends GlobalState, Local> = {
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
 }
 
-type Component<Global extends GlobalState, Local> = ComponentEvents<Global, Local> & {
+type BoxProp<Type> = {
+    top?: Type
+    right?: Type
+    bottom?: Type
+    left?: Type
+}
+
+type Border = [number, "solid" | "dashed", string]
+
+type UnwrapBoxProp<T> = T extends BoxProp<infer U> ? U : T;
+
+type ComponentBoxProps = {
+    padding?: BoxProp<number>
+    margin?: BoxProp<number>
+    border?: BoxProp<Border>
+}
+
+type Component<Global extends GlobalState, Local> = ComponentBoxProps & ComponentEvents<Global, Local> & {
     width : number
     height : number
     name : Tag

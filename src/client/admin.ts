@@ -5,7 +5,8 @@ import {
     row,
     WRAP,
     column,
-    grow
+    grow,
+    padding
 } from "./components";
 
 const Header = (modules : Modules) => row<AdminState, AdminState>(MATCH, WRAP, [
@@ -13,6 +14,7 @@ const Header = (modules : Modules) => row<AdminState, AdminState>(MATCH, WRAP, [
     row(0, WRAP, [
         grow(true),
         text(WRAP, WRAP, [
+            padding(16),
             "Collabreate"
         ]),
         ...modules.list("module:tab")
