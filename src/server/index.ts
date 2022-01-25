@@ -107,39 +107,50 @@ export default (config : {
             return this._map[name]
         }
     }
+    modules.set("database", config.database);
     config.modules.map(it => it(modules))
     return async (req : IncomingMessage, res : ServerResponse) => {
-        if(req.url === "/admin") {
-            res.writeHead(200, {
-                "Content-type" : "text/html"
-            });
-            const state : AdminState = {
-                selectedDirectory : "components",
-                __ : true
+        const endpoints = modules.get("module:endpoint") as Array<Endpoint>;
+        const result = await endpoints.reduce(async (promise, endpoint) => {
+            const value = await promise;
+            if(!value) {
+                return await endpoint(req, res)
             }
-            const {
-                html,
-                js
-            } = render(Admin(modules))({
-                parent : {
-                    width : MATCH,
-                    height : MATCH,
-                    name : "root"
-                },
-                global : state,
-                local : state
-            })
-            res.write(document({
-                html : html.join(""),
-                js : js.join("\n")
-            }))
-            res.end();
-        } else {
-            res.writeHead(404, {
-                "Content-type" : "text/html"
-            });
-            res.write("404");
-            res.end();
+            return value
+        }, Promise.resolve(false))
+        if(!result) {
+            if(req.url === "/admin") {
+                res.writeHead(200, {
+                    "Content-type" : "text/html"
+                });
+                const state : AdminState = {
+                    selectedDirectory : "components",
+                    __ : true
+                }
+                const {
+                    html,
+                    js
+                } = render(Admin(modules))({
+                    parent : {
+                        width : MATCH,
+                        height : MATCH,
+                        name : "root"
+                    },
+                    global : state,
+                    local : state
+                })
+                res.write(document({
+                    html : html.join(""),
+                    js : js.join("\n")
+                }))
+                res.end();
+            } else {
+                res.writeHead(404, {
+                    "Content-type" : "text/html"
+                });
+                res.write("404");
+                res.end();
+            }
         }
     };
 }

@@ -3,6 +3,11 @@ declare module "*.svg" {
     export default content;
 }
 
+type Endpoint = (
+    req : import("http").IncomingMessage, 
+    res : import("http").ServerResponse
+) => Promise<boolean>
+
 type DocumentOutput = {
     html : string[]
     js : string[]
@@ -101,7 +106,7 @@ interface Database {
     remove(table : Table, id : string) : Promise<void>
 }
 
-type ModuleName = "module:tab"
+type ModuleName = "module:tab" | "module:endpoint" | "database"
 
 type Modules = {
     _map : Record<string, any[]>
