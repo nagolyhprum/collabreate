@@ -5,7 +5,9 @@ import {
     WRAP,
     onClick,
     observe,
-    padding
+    padding,
+    row,
+    MATCH
 } from "../components";
 
 export const Tab = <Local>(name : string) => button<AdminState, Local>(WRAP, WRAP, [
@@ -24,4 +26,15 @@ export const Tab = <Local>(name : string) => button<AdminState, Local>(WRAP, WRA
     text(WRAP, WRAP, [
         name
     ])
+])
+
+export const Body = <Local>(config : {
+    name : string,
+    content : ComponentFromConfig<AdminState, Local>
+}) => row<AdminState, Local>(MATCH, MATCH, [
+    observe(({
+        global,
+        event
+    }) => set(event.visible, eq(global.selectedDirectory, config.name.toLowerCase()))),
+    config.content
 ])

@@ -9,7 +9,10 @@ export const render = <Global extends GlobalState, Local>(
     const component = root(config);
     const output : DocumentOutput = {
         js : [
-            `var global = ${JSON.stringify(config.global)};`
+            `var adapters = {};`,
+            `var events = {};`,
+            `var listeners = [];`,
+            `var global = ${JSON.stringify(config.global)};`,
         ],
         css : [],
         html : [],
@@ -21,7 +24,7 @@ export const render = <Global extends GlobalState, Local>(
         local : config.local,
         output
     })
-    output.js.push("bind(document.body);")
+    output.js.push("bind(document.body, global);")
     return output;
 }
 
@@ -98,6 +101,11 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "border":
             handleBox(name, value as BoxProp<number | Array<unknown>>, props)
             return props;
+        case "visible":
+            if(!value) {
+                props.style.display = "none";
+            }
+            return props;
         case "onClick":
         case "observe":
         case "children":
@@ -141,25 +149,56 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "adapter": {
             const adapter = value as Component<Global, Local>["adapter"]
             const data = component.data
-            if(data && adapter) {
-                data.forEach(local => {
-                    const parent : Component<Global, unknown> = {
-                        width : 0,
-                        height : 0,
-                        name : "root"
+            if(adapter) {
+                for(const index in adapter) {
+                    const key = `${component.id}_${index}`
+                    if(!output.cache.has(key)) {
+                        output.cache.add(key)
+                        const child = adapter[index]({
+                            global : global,
+                            local : local,
+                            parent : {
+                                height : 0,
+                                width : 0,
+                                name : "root",                                
+                            }
+                        }).children?.[0]
+                        if(child) {
+                            const adapterOutput = handle({
+                                component : child,
+                                global,
+                                local,
+                                output : {
+                                    cache : output.cache,
+                                    css : output.css,
+                                    html : [],
+                                    js : output.js
+                                }
+                            })
+                            output.js.push(`adapters.${key} = $('${adapterOutput.html.join("")}')`)
+                        }
                     }
-                    adapter[local.adapter]({
-                        global,
-                        local,
-                        parent
+                }
+                if(data) {
+                    data.forEach(local => {
+                        const parent : Component<Global, unknown> = {
+                            width : 0,
+                            height : 0,
+                            name : "root"
+                        }
+                        adapter[local.adapter]({
+                            global,
+                            local,
+                            parent
+                        })
+                        return handle({
+                            component : (parent.children || [])[0],
+                            global,
+                            local,
+                            output
+                        })
                     })
-                    return handle({
-                        component : (parent.children || [])[0],
-                        global,
-                        local,
-                        output
-                    })
-                })
+                }
             }
             return;
         }
@@ -177,6 +216,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             }
             return;
         }
+        case "visible":
         case "padding":
         case "margin":
         case "border":
@@ -232,9 +272,9 @@ const handle = <Global extends GlobalState, Local>({
         const value = props[key]
         if(key !== "children" && value) {
             if(typeof value === "object") {
-                return `style=${keys(value).map((key) => {
+                return `style="${keys(value).map((key) => {
                     return `${key.toString()}:${value[key]}`
-                }).join(";")}`
+                }).join(";")}"`
             } else {
                 return `${key}="${value}"`
             }

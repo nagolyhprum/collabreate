@@ -24,7 +24,22 @@ type GlobalState = {
     __ : boolean
 }
 
+type ComponentFile = {
+    adapter : "file"
+    name : string
+    contents : string   
+}
+
+type ComponentFolder = {
+    adapter : "folder"
+    name : string
+    children : ComponentFile | ComponentFolder
+}
+
 type AdminState = GlobalState & {
+    Components : {
+        files : Array<ComponentFolder | ComponentFile>
+    }
     selectedDirectory : string
 }
 
@@ -36,6 +51,7 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
     local : Local
     global : Global
     event : Type
+    _ : UnderscoreProgramming
 }
 
 type ComponentEvents<Global extends GlobalState, Local> = {
@@ -64,6 +80,7 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     width : number
     height : number
     name : Tag
+    visible?: boolean
     id? : string
     children?: Array<Component<Global, Local>>
     text?: string
@@ -106,7 +123,7 @@ interface Database {
     remove(table : Table, id : string) : Promise<void>
 }
 
-type ModuleName = "module:tab" | "module:endpoint" | "database"
+type ModuleName = "admin:header" | "admin:main" | "endpoint" | "database"
 
 type Modules = {
     _map : Record<string, any[]>

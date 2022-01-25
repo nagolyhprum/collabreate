@@ -17,16 +17,17 @@ const Header = (modules : Modules) => row<AdminState, AdminState>(MATCH, WRAP, [
             padding(16),
             "Collabreate"
         ]),
-        ...modules.list("module:tab")
+        ...modules.list("admin:header")
     ])
 ]);
 
-const Main = () => row<AdminState, AdminState>(MATCH, 0, [
+const Main = (modules : Modules) => row<AdminState, AdminState>(MATCH, 0, [
     grow(true),
-    background("blue")
+    background("blue"),
+    ...modules.list("admin:main")
 ]);
 
 export const Admin = (modules : Modules) => column<AdminState, AdminState>(MATCH, MATCH, [
     Header(modules),
-    Main(),
+    Main(modules),
 ])

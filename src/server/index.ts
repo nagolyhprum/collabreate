@@ -27,8 +27,22 @@ html, body {
     <body>
         ${html}
         <script>
-var events = {};
-var listeners = [];
+var _ = {
+    toString : function(input) {
+        return "" + input;
+    },
+    concat : function(a, b) {
+        return a.concat(b);
+    }
+}
+function $(html) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    const child = div.children[0];
+    return function() {
+        return child.cloneNode(true);
+    };
+}
 function setEvent(id, name, callback) {
     events[id] = events[id] || {};
     events[id][name] = callback;
@@ -40,8 +54,24 @@ function Component(component) {
             if(cache[key] !== value) {
                 cache[key] = value;
                 switch(key) {
+                    case "text":
+                        target.innerText = value;
+                        return;
+                    case "data":
+                        // LETS BE LAZY
+                        target.innerHTML = "";
+                        for(var i in value) {
+                            var item = value[i];
+                            var child = adapters[target.dataset.id + "_" + item.adapter]();
+                            bind(child, item)
+                            target.appendChild(child)
+                        }
+                        return;
                     case "background":
                         target.style.background = value;
+                        return;
+                    case "visible":
+                        target.style.display = value ? (target.style.flexDirection ? "flex" : "block") : "none";
                         return;
                 }
             }
@@ -50,25 +80,26 @@ function Component(component) {
 }
 function update() {
     listeners.forEach(function (listener) {
-        listener.callback(null, listener.component)
+        listener.callback(listener.local, listener.component)
     })
 }
-function bind(root) {
-    root.querySelectorAll("[data-id]").forEach(function(component) {
+function bind(root, local) {
+    Array.from(root.querySelectorAll("[data-id]")).concat(root.dataset.id ? [root] : []).forEach(function(component) {
         const toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
             const callback = toBind[event];
             if(event === "onClick") {
                 component.onclick = function() {
-                    callback(/*local, event*/);
+                    callback(local/*, event*/);
                     update();
                 };
             } else if(event === "observe") {
                 const wrapped = Component(component);
-                callback(null, wrapped)
+                callback(local, wrapped)
                 listeners.push({
                     component : wrapped,
-                    callback : callback
+                    callback : callback,
+                    local : local,
                 });
             }
         });
@@ -110,7 +141,7 @@ export default (config : {
     modules.set("database", config.database);
     config.modules.map(it => it(modules))
     return async (req : IncomingMessage, res : ServerResponse) => {
-        const endpoints = modules.get("module:endpoint") as Array<Endpoint>;
+        const endpoints = modules.get("endpoint") as Array<Endpoint>;
         const result = await endpoints.reduce(async (promise, endpoint) => {
             const value = await promise;
             if(!value) {
@@ -125,6 +156,9 @@ export default (config : {
                 });
                 const state : AdminState = {
                     selectedDirectory : "components",
+                    Components : {
+                        files : []
+                    },
                     __ : true
                 }
                 const {
