@@ -4,6 +4,7 @@ import { adapters, background, border, button, column, grow, MATCH, observe, onC
 import { add, block, set } from "../../language"
 import CreateFolder from './create_folder.svg'
 import CreateFile from './create_file.svg'
+import { Router } from "express"
 
 const File = text<AdminState, ComponentFile>(WRAP, WRAP, [
     padding([16, 16, 0, 16]),
@@ -127,13 +128,8 @@ export const Components = (modules : Modules) => {
             ])
         ])
     }))
-    modules.add("endpoint", async (req : IncomingMessage, res : ServerResponse) => {
-        if(req.method === "POST" && req.url === "/api/component") {
-            res.writeHead(200)
-            res.write("TODO")
-            res.end()
-            return true;
-        }
-        return false
+    const router = modules.get("router") as Router
+    router.post("/api/component", (_, res) => {
+        res.status(200).send("TODO")
     })
 }

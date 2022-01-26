@@ -1,16 +1,21 @@
-const http = require("http");
 const {
     default : collabreate,
     Components,
     Pages,
     Test,
-    Commit,
     Deploy,
     Branches,
-    Projects
+    Projects,
+    WebSockets
 } = require("../dist/index.js");
+const http = require("http")
+const express = require("express")
 
-const server = http.createServer(collabreate({
+const app = express();
+
+const server = http.createServer(app)
+
+app.use(collabreate({
     database : {
         get() {
             return []
@@ -22,8 +27,8 @@ const server = http.createServer(collabreate({
         Components,
         Pages,
         Test,
-        Commit,
         Deploy,
+        WebSockets(server)
     ]
 }))
 

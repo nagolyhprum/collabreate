@@ -1,12 +1,14 @@
-import { IncomingMessage, ServerResponse } from "http"
+import { Router } from "express"
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
 
 const document = ({
+    scripts,
     html,
     js
-} : {
+} : {    
+    scripts : string[]
     html : string
     js : string
 }) => `<!doctype html>
@@ -25,11 +27,13 @@ html, body {
     box-sizing: border-box;
 }
         </style>
+        ${scripts.map(src => `<script src="${src}"></script>`).join("")}
     <head>
     </head>
     <body>
         ${html}
         <script>
+const socket = io();
 var _ = {
     toString : function(input) {
         return "" + input;
@@ -124,15 +128,16 @@ ${js}
 export { Components } from '../client/modules/Components'
 export { Pages } from '../client/modules/Pages'
 export { Test } from '../client/modules/Test'
-export { Commit } from '../client/modules/Commit'
 export { Deploy } from '../client/modules/Deploy'
 export { Projects } from '../client/modules/Projects'
 export { Branches } from '../client/modules/Branches'
+export { WebSockets } from '../client/modules/WebSockets'
 
 export default (config : {
     database : Database
     modules : Module[]
 }) => {
+    const router = Router();
     const modules : Modules = {
         _map : {},
         set(name, value) {
@@ -149,53 +154,42 @@ export default (config : {
             return this._map[name]
         }
     }
+    modules.set("router", router);
     modules.set("database", config.database);
     config.modules.map(it => it(modules))
-    return async (req : IncomingMessage, res : ServerResponse) => {
-        const endpoints = modules.get("endpoint") as Array<Endpoint>;
-        const result = await endpoints.reduce(async (promise, endpoint) => {
-            const value = await promise;
-            if(!value) {
-                return await endpoint(req, res)
-            }
-            return value
-        }, Promise.resolve(false))
-        if(!result) {
-            if(req.url === "/admin") {
-                res.writeHead(200, {
-                    "Content-type" : "text/html"
-                });
-                const state : AdminState = {
-                    selectedDirectory : "components",
-                    Components : {
-                        files : []
-                    },
-                    __ : true
-                }
-                const {
-                    html,
-                    js
-                } = render(Admin(modules))({
-                    parent : {
-                        width : MATCH,
-                        height : MATCH,
-                        name : "root"
-                    },
-                    global : state,
-                    local : state
-                })
-                res.write(document({
-                    html : html.join(""),
-                    js : js.join("\n")
-                }))
-                res.end();
-            } else {
-                res.writeHead(404, {
-                    "Content-type" : "text/html"
-                });
-                res.write("404");
-                res.end();
-            }
+    router.get("/admin", (_, res) => {
+        const state : AdminState = {
+            selectedDirectory : "projects",
+            Components : {
+                files : []
+            },
+            __ : true
         }
-    };
+        const {
+            html,
+            js
+        } = render(Admin(modules))({
+            parent : {
+                width : MATCH,
+                height : MATCH,
+                name : "root"
+            },
+            global : state,
+            local : state
+        })
+        res.status(200).header({
+            "Content-type" : "text/html"
+        }).send(document({
+            scripts : modules.list("admin:script"),
+            html : html.join(""),
+            js : js.join("\n")
+        }))
+    })
+    router.use((_, res) => {
+        res.status(400).header({
+            "Content-type" : "text/html"
+        }).send("400")
+    })
+
+    return router;
 }

@@ -125,7 +125,7 @@ interface Database {
     remove(table : Table, id : string) : Promise<void>
 }
 
-type ModuleName = "admin:header" | "admin:main" | "endpoint" | "database"
+type ModuleName = "admin:header" | "admin:main" | "database" | "socket.io" | "router" | "admin:script"
 
 type Modules = {
     _map : Record<string, any[]>
