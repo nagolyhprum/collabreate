@@ -24,7 +24,7 @@ export const render = <Global extends GlobalState, Local>(
         local : config.local,
         output
     })
-    output.js.push("bind(document.body, global);")
+    output.js.push("bind(document.body, Local(global, 0));")
     return output;
 }
 
@@ -33,11 +33,12 @@ function failed(_ : never) {
 }
 
 const getTagName = (name : Tag) : string => {
-    switch(name) {
+    switch(name) {        
         case "button":
             return "button";
         case "text":
             return "span";
+        case "scrollable":
         case "row":
         case "root":
         case "column":
@@ -85,6 +86,9 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
             if(value === "row" || value === "column") {
                 props.style.display = "flex";
                 props.style["flex-direction"] = value.toString();
+            }
+            if(value === "scrollable") {
+                props.style.overflow = "auto";
             }
             return props;
         case "background":
@@ -207,7 +211,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             const id = `${name}:${component.id}`
             if(!output.cache.has(id)) {
                 output.cache.add(id)
-                output.js.push(`setEvent("${component.id}", "${name}", function(local, event) {`);
+                output.js.push(`setEvent("${component.id}", "${name}", function(local, index, event) {`);
                 (value as Array<(config : any) => ProgrammingLanguage>).forEach((callback) => {
                     const generated = code(callback, new Set([]));
                     output.js.push(renderJS(generated, "\t"))

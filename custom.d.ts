@@ -17,7 +17,7 @@ type DocumentOutput = {
 
 type Unarray<T> = T extends Array<infer U> ? U : T;
 
-type Tag = "row" | "root" | "column" | "text" | "button"
+type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable"
 
 type GlobalState = {
     // I ADDED THIS SO THAT I GET TYPE ERRORS
@@ -33,7 +33,7 @@ type ComponentFile = {
 type ComponentFolder = {
     adapter : "folder"
     name : string
-    children : ComponentFile | ComponentFolder
+    children : Array<ComponentFile | ComponentFolder>
 }
 
 type AdminState = GlobalState & {
@@ -51,7 +51,9 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
     local : Local
     global : Global
     event : Type
+    index : number
     _ : UnderscoreProgramming
+    console : Console
 }
 
 type ComponentEvents<Global extends GlobalState, Local> = {

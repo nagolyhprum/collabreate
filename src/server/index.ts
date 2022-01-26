@@ -21,6 +21,9 @@ html, body {
     width : 100%;
     min-height : 100%;
 }
+* { 
+    box-sizing: border-box;
+}
         </style>
     <head>
     </head>
@@ -34,6 +37,12 @@ var _ = {
     concat : function(a, b) {
         return a.concat(b);
     }
+};
+function Local(value, index) {
+    return {
+        value : value,
+        index : index
+    };
 }
 function $(html) {
     const div = document.createElement("div");
@@ -60,10 +69,10 @@ function Component(component) {
                     case "data":
                         // LETS BE LAZY
                         target.innerHTML = "";
-                        for(var i in value) {
-                            var item = value[i];
+                        for(var index = 0; index < value.length; index++) {
+                            var item = value[index];
                             var child = adapters[target.dataset.id + "_" + item.adapter]();
-                            bind(child, item)
+                            bind(child, Local(item, index))
                             target.appendChild(child)
                         }
                         return;
@@ -80,7 +89,7 @@ function Component(component) {
 }
 function update() {
     listeners.forEach(function (listener) {
-        listener.callback(listener.local, listener.component)
+        listener.callback(listener.local.value, listener.local.index, listener.component)
     })
 }
 function bind(root, local) {
@@ -90,12 +99,12 @@ function bind(root, local) {
             const callback = toBind[event];
             if(event === "onClick") {
                 component.onclick = function() {
-                    callback(local/*, event*/);
+                    callback(local.value, local.index/*,event*/);
                     update();
                 };
             } else if(event === "observe") {
                 const wrapped = Component(component);
-                callback(local, wrapped)
+                callback(local.value, local.index, wrapped)
                 listeners.push({
                     component : wrapped,
                     callback : callback,
@@ -117,6 +126,8 @@ export { Pages } from '../client/modules/Pages'
 export { Test } from '../client/modules/Test'
 export { Commit } from '../client/modules/Commit'
 export { Deploy } from '../client/modules/Deploy'
+export { Projects } from '../client/modules/Projects'
+export { Branches } from '../client/modules/Branches'
 
 export default (config : {
     database : Database

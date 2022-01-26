@@ -6,6 +6,8 @@ const {
     Test,
     Commit,
     Deploy,
+    Branches,
+    Projects
 } = require("../dist/index.js");
 
 const server = http.createServer(collabreate({
@@ -15,6 +17,8 @@ const server = http.createServer(collabreate({
         }
     },
     modules : [
+        Projects,
+        Branches,
         Components,
         Pages,
         Test,

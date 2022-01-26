@@ -148,6 +148,7 @@ export const border = box("border")
 export const row = tag("row");
 export const column = tag("column");
 export const button = tag("button");
+export const scrollable = tag("scrollable");
 export const text = tag("text");
 
 // PROPS
@@ -169,4 +170,12 @@ export const adapters = <Global extends GlobalState, Local>(
         config.parent.adapter = adapter;
         return config.parent;
     }
+}
+
+export const recursive = <Global extends GlobalState, Local>(
+    callback : () => ComponentFromConfig<Global, Local>
+) : ComponentFromConfig<Global, Local> => (
+    config
+) => {
+    return callback()(config)
 }
