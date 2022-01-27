@@ -1,5 +1,4 @@
 import { Router } from "express"
-import { Sequelize } from "sequelize/dist";
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
@@ -153,10 +152,7 @@ export default (modules : Module[]) => {
     }
     dependencies.set("router", router);
     modules.map(it => it(dependencies))
-    const database = dependencies.get("admin:database") as Sequelize
-    const isReady = database.sync()
     router.get("/admin", async (_, res) => {
-        await isReady
         const state : AdminState = {
             selectedDirectory : "projects",
             Components : {

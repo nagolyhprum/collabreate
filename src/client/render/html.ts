@@ -38,6 +38,7 @@ const getTagName = (name : Tag) : string => {
             return "button";
         case "text":
             return "span";
+        case "stack":
         case "scrollable":
         case "row":
         case "root":
@@ -47,13 +48,28 @@ const getTagName = (name : Tag) : string => {
     failed(name);
 }
 
-const handleBox = (name : string, input : BoxProp<Array<unknown> | number>, props : TagProps) => {
+const numberToMeasurement = (input : number | null | undefined) : string => {
+    if(input === null || input === undefined) {
+        return "";
+    }
+    if(0 < input && input < 1) {
+        return `${input * 100}%`
+    } else if(input === WRAP) {
+        return "auto"
+    } else if(input === MATCH) {
+        return "100%"
+    } else {
+        return `${input}px`
+    }
+}
+
+const handleBox = (prefix : string, input : BoxProp<Array<unknown> | number>, props : TagProps) => {
     keys(input).forEach(key => {
         const value = input[key]
         if(value instanceof Array) {
-            props.style[`${name}-${key}`] = value.map(it => typeof it === "number" ? `${it}px` : it).join(" ")
+            props.style[`${prefix}${key}`] = value.map(it => typeof it === "number" ? numberToMeasurement(it) : it).join(" ")
         } else {
-            props.style[`${name}-${key}`] = `${input[key]}px`
+            props.style[`${prefix}${key}`] = numberToMeasurement(value)
         }
     })
 }
@@ -71,19 +87,13 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "width":
         case "height":
             if(typeof value === "number") {
-                if(0 < value && value < 1) {
-                    props.style[name] = `${value * 100}%`
-                } else if(value === WRAP) {
-                    props.style[name] = "auto"
-                } else if(value === MATCH) {
-                    props.style[name] = "100%"
-                } else {
-                    props.style[name] = `${value}px`;
-                }
+                props.style[name] = numberToMeasurement(value)
             }
             return props;
         case "name":
-            if(value === "row" || value === "column") {
+            if(value === "stack") {
+                props.style.position = "relative";
+            } else if(value === "row" || value === "column") {
                 props.style.display = "flex";
                 props.style["flex-direction"] = value.toString();
             }
@@ -100,10 +110,14 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "id":
             props["data-id"] = value?.toString() ?? "";
             return props;
+        case "position":
+            props.style.position = "absolute";
+            handleBox("", value as BoxProp<number | Array<unknown>>, props)
+            return props;
         case "padding":
         case "margin":
         case "border":
-            handleBox(name, value as BoxProp<number | Array<unknown>>, props)
+            handleBox(`${name}-`, value as BoxProp<number | Array<unknown>>, props)
             return props;
         case "visible":
             if(!value) {
@@ -231,6 +245,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "background":
         case "grow":
         case "data":
+        case "position":
             return;
     }
     failed(name);

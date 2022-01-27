@@ -17,7 +17,7 @@ type DocumentOutput = {
 
 type Unarray<T> = T extends Array<infer U> ? U : T;
 
-type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable"
+type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack"
 
 type GlobalState = {
     // I ADDED THIS SO THAT I GET TYPE ERRORS
@@ -76,6 +76,7 @@ type ComponentBoxProps = {
     padding?: BoxProp<number>
     margin?: BoxProp<number>
     border?: BoxProp<Border>
+    position?: BoxProp<number>
 }
 
 type Component<Global extends GlobalState, Local> = ComponentBoxProps & ComponentEvents<Global, Local> & {

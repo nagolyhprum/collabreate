@@ -142,6 +142,7 @@ const box = <Key extends keyof ComponentBoxProps, Type extends UnwrapBoxProp<Com
 export const margin = box("margin")
 export const padding = box("padding")
 export const border = box("border")
+export const position = box("position")
 
 // TAGS
 
@@ -150,6 +151,7 @@ export const column = tag("column");
 export const button = tag("button");
 export const scrollable = tag("scrollable");
 export const text = tag("text");
+export const stack = tag("stack");
 
 // PROPS
 

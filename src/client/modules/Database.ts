@@ -1,46 +1,52 @@
-import { Sequelize, DataTypes } from "sequelize";
+import { Router } from "express";
 
-const sequelize = new Sequelize(process.env.DATABASE_URL || "", {
-    logging: (sql) => console.log(sql),
-    ...(process.env.NODE_ENV === "production" ? {
-        dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: false
-            }
-        }
-    } : {})
-});
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export const Database = (dependencies : Dependencies) => {
-    dependencies.set("admin:database", sequelize);
-
-    const Project = sequelize.define("project", {
-        id : {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-            allowNull: false
-        },
-        name : {
-            type: DataTypes.STRING,
-            allowNull: false
+    dependencies.set("admin:database", prisma);
+    const router = dependencies.get("router") as Router;
+    router.use((req, res, next) => {
+        const host = (req.header("host") ?? "").split(".");
+        const domain = host.splice(-2).join(".")
+        const subdomain = host.join(".")
+        if(domain && subdomain) {
+            next();
+        } else {
+            res.status(302).header({
+                "Location" : `www.${domain}`
+            }).end()
         }
     })
-
-    const Branch = sequelize.define("branch", {
-        id : {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-            allowNull: false
-        },
-        name : {
-            type: DataTypes.STRING,
-            allowNull: false
+    const getProject = async (projectId : string, branchId : string) => {
+        const project = await prisma.project.findFirst({
+            where : {
+                id : projectId
+            }
+        })
+        const branch = await prisma.branch.findFirst({
+            where : {
+                id : branchId
+            },
+            select : {
+                files : true
+            }
+        })
+        // if(isNew) {
+        //     const www = await getProject(projectId, "www");
+        //     // TODO
+        // }
+        return {
+            project,
+            branch,
+            files : branch?.files ?? []
         }
+    }
+    router.get("/api/project", async (req, res) => {
+        const host = (req.header("host") ?? "").split(".");
+        const domain = host.splice(-2).join(".")
+        const subdomain = host.join(".")
+        res.send(await getProject(domain, subdomain))
     })
-
-    Project.hasMany(Branch)
-    Branch.belongsTo(Project)
 };

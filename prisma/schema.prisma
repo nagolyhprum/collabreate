@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Project {
+    id String @id
+
+    latestBranchId String
+    latestBranch Branch @relation(fields: [latestBranchId], references: [id], name : "latestBranch") 
+
+    branches Branch[]
+}
+
+model Branch {
+    id String @id
+
+    projectId String
+    project Project @relation(fields: [projectId], references: [id])
+
+    previousBranchId String
+    previousBranch Branch @relation(fields: [previousBranchId], references: [id], name: "branchLink")
+
+    nextBranch Branch? @relation(name: "branchLink")
+
+    activeProject Project? @relation(name : "latestBranch")
+
+    files File[]
+}
+
+model File {
+    id Int @id @default(autoincrement())
+    uiId String
+    isFolder Boolean
+
+    branchId String 
+    branch Branch @relation(fields: [branchId], references: [id])
+
+    parentId Int
+    parent File? @relation(fields: [parentId], references: [id], name: "folder")
+    children File[] @relation(name : "folder")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  content   String?
+  published Boolean  @default(false)
+  authorId  Int
+  User      User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  userId Int     @unique
+  User   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id      Int      @id @default(autoincrement())
+  name    String?  @db.VarChar(255)
+  email   String   @unique @db.VarChar(255)
+  Post    Post[]
+  Profile Profile?
+}

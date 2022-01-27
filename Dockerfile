@@ -1,5 +1,5 @@
-FROM node:10
-WORKDIR /home/node/src
+FROM node:12
+WORKDIR /home/node
 RUN mkdir dist && touch dist/index.js
 COPY package.json package.json
 COPY package-lock.json package-lock.json
