@@ -329,3 +329,36 @@ type UnderscoreProgramming = {
         key: string
     }>(list: T[], item: T) => T[]
 }
+
+type Root = {
+    projects : { 
+        // PROJECT
+        [key : string] : {
+            id : string
+            name : string
+            domain : string
+            branches : {
+                // BRANCH
+                [key : string] : {
+                    id : string
+                    name : string // subdomain
+                    files : {
+                        // COMPONENTS / TESTS / PAGES
+                        [key : string] : {
+                            id : string
+                            name : string
+                            parent : string
+                        }
+                    }
+                    components : {
+                        // COMPONENT
+                        [key : string] : {
+                            id : string
+                            parent : string
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

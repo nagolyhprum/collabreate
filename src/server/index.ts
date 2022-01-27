@@ -126,8 +126,6 @@ ${js}
 </html>`
 
 export { Components } from '../client/modules/Components'
-export { Pages } from '../client/modules/Pages'
-export { Test } from '../client/modules/Test'
 export { Deploy } from '../client/modules/Deploy'
 export { Projects } from '../client/modules/Projects'
 export { Branches } from '../client/modules/Branches'

@@ -1,8 +1,6 @@
 const {
     default : collabreate,
     Components,
-    Pages,
-    Test,
     Deploy,
     Branches,
     Projects,
@@ -25,8 +23,6 @@ app.use(collabreate({
         Projects,
         Branches,
         Components,
-        Pages,
-        Test,
         Deploy,
         WebSockets(server)
     ]
