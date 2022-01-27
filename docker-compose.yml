@@ -1,0 +1,14 @@
+version: '3'
+services:
+  web:
+    build: .
+    environment:
+      - DATABASE_URL=postgres://postgres:password@database:5432/postgres
+    ports:
+      - 80:80
+  database:
+    image: postgres
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=password

@@ -65,11 +65,11 @@ const Folder : ComponentFromConfig<AdminState, ComponentFolder> = column<AdminSt
     ]),
 ])
 
-export const Components = (modules : Modules) => {
-    const database = modules.get("database") as Database
+export const Components = (dependencies : Dependencies) => {
+    const database = dependencies.get("admin:database") as Database
     const name = "Components"
-    modules.add("admin:header", Tab(name))
-    modules.add("admin:main", Body({
+    dependencies.add("admin:header", Tab(name))
+    dependencies.add("admin:main", Body({
         name,
         content : row(MATCH, MATCH, [
             scrollable(.3, MATCH, [
@@ -128,7 +128,7 @@ export const Components = (modules : Modules) => {
             ])
         ])
     }))
-    const router = modules.get("router") as Router
+    const router = dependencies.get("router") as Router
     router.post("/api/component", (_, res) => {
         res.status(200).send("TODO")
     })

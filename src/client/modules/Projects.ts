@@ -1,5 +1,5 @@
 import { Tab } from "./shared"
 
-export const Projects = (modules : Modules) => {
-    modules.add("admin:header", Tab("Projects"))
+export const Projects = (dependencies : Dependencies) => {
+    dependencies.add("admin:header", Tab("Projects"))
 }

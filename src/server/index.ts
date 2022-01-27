@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { Sequelize } from "sequelize/dist";
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
@@ -130,13 +131,11 @@ export { Deploy } from '../client/modules/Deploy'
 export { Projects } from '../client/modules/Projects'
 export { Branches } from '../client/modules/Branches'
 export { WebSockets } from '../client/modules/WebSockets'
+export { Database } from '../client/modules/Database'
 
-export default (config : {
-    database : Database
-    modules : Module[]
-}) => {
+export default (modules : Module[]) => {
     const router = Router();
-    const modules : Modules = {
+    const dependencies : Dependencies = {
         _map : {},
         set(name, value) {
             this._map[name] = value;
@@ -152,10 +151,12 @@ export default (config : {
             return this._map[name]
         }
     }
-    modules.set("router", router);
-    modules.set("database", config.database);
-    config.modules.map(it => it(modules))
-    router.get("/admin", (_, res) => {
+    dependencies.set("router", router);
+    modules.map(it => it(dependencies))
+    const database = dependencies.get("admin:database") as Sequelize
+    const isReady = database.sync()
+    router.get("/admin", async (_, res) => {
+        await isReady
         const state : AdminState = {
             selectedDirectory : "projects",
             Components : {
@@ -166,7 +167,7 @@ export default (config : {
         const {
             html,
             js
-        } = render(Admin(modules))({
+        } = render(Admin(dependencies))({
             parent : {
                 width : MATCH,
                 height : MATCH,
@@ -178,7 +179,7 @@ export default (config : {
         res.status(200).header({
             "Content-type" : "text/html"
         }).send(document({
-            scripts : modules.list("admin:script"),
+            scripts : dependencies.list("admin:script"),
             html : html.join(""),
             js : js.join("\n")
         }))

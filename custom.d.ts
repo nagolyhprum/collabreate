@@ -125,9 +125,9 @@ interface Database {
     remove(table : Table, id : string) : Promise<void>
 }
 
-type ModuleName = "admin:header" | "admin:main" | "database" | "socket.io" | "router" | "admin:script"
+type ModuleName = "admin:header" | "admin:main" | "admin:database" | "socket.io" | "router" | "admin:script"
 
-type Modules = {
+type Dependencies = {
     _map : Record<string, any[]>
     set : (name : ModuleName, value : any) => void
     get : (name : ModuleName) => any
@@ -135,7 +135,7 @@ type Modules = {
     list : (name : ModuleName) => any[]
 }
 
-type Module = (modules : Modules) => void
+type Module = (modules : Dependencies) => void
 
 type ProgrammingLanguage = {
     _name: "fallback",

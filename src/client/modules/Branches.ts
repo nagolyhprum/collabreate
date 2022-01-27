@@ -1,5 +1,5 @@
 import { Tab } from "./shared"
 
-export const Branches = (modules : Modules) => {
-    modules.add("admin:header", Tab("Branches"))
+export const Branches = (dependencies : Dependencies) => {
+    dependencies.add("admin:header", Tab("Branches"))
 }
