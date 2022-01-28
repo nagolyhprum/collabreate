@@ -1,6 +1,8 @@
 import { Router } from "express";
+import crypto from "crypto";
 
 import { PrismaClient } from '@prisma/client'
+import { Socket, Server } from "socket.io";
 
 const prisma = new PrismaClient()
 
@@ -20,33 +22,81 @@ export const Database = (dependencies : Dependencies) => {
         }
     })
     const getProject = async (projectId : string, branchId : string) => {
-        const project = await prisma.project.findFirst({
+        const project = (await prisma.project.findFirst({
             where : {
                 id : projectId
             }
-        })
-        const branch = await prisma.branch.findFirst({
+        })) || (await prisma.project.create({
+            data : {
+                id : projectId
+            }
+        }))
+        const branch = (await prisma.branch.findFirst({
             where : {
-                id : branchId
-            },
-            select : {
-                files : true
+                id : branchId,
+                projectId
+            }
+        })) || (await prisma.branch.create({
+            data : {
+                id : branchId,
+                projectId                
+            }
+        }))
+        // TODO : IF IT IS NEW THEN LOAD FROM WWW
+        const files = await prisma.file.findMany({
+            where : {
+                branch
             }
         })
-        // if(isNew) {
-        //     const www = await getProject(projectId, "www");
-        //     // TODO
-        // }
         return {
             project,
             branch,
-            files : branch?.files ?? []
+            files
+        }
+    }
+    const io = dependencies.get("socket.io") as Server
+    const getMains = (host : string | undefined) => {
+        const split = (host ?? "").split(".");
+        const domain = split.splice(-2).join(".")
+        const subdomain = split.join(".")
+        return {
+            domain,
+            subdomain
         }
     }
     router.get("/api/project", async (req, res) => {
-        const host = (req.header("host") ?? "").split(".");
-        const domain = host.splice(-2).join(".")
-        const subdomain = host.join(".")
+        const { domain, subdomain } = getMains(req.header("host"))
         res.send(await getProject(domain, subdomain))
+    })
+    io.on("connect", (socket : Socket) => {
+        const { domain, subdomain } = getMains(socket.handshake.headers.host)
+        socket.join(`${domain}_${subdomain}`)
+    })
+    router.post("/api/file", async (req, res) => {
+        const {
+            domain,
+            subdomain
+        } = getMains(req.header("host"))
+        const {
+            _count : files
+        } = await prisma.file.aggregate({
+            _count : true,
+            where : {
+                isFolder : req.body.isFolder,
+                branchId : req.body.branchId,
+                parentId : req.body.parentId,
+            }
+        })
+        const file = await prisma.file.create({
+            data : {
+                isFolder : req.body.isFolder,
+                branchId : req.body.branchId,
+                parentId : req.body.parentId,
+                name : `${req.body.isFolder ? "Folder" : "File"}_${files}`,
+                uiId : crypto.randomBytes(20).toString('hex'),
+            }
+        })
+        io.to(`${domain}_${subdomain}`).emit("file", file);
+        res.status(200).end()
     })
 };

@@ -1,12 +1,13 @@
 import { Tab, Body } from "./shared"
-import { IncomingMessage, ServerResponse } from 'http'
-import { adapters, background, border, button, column, grow, MATCH, observe, onClick, padding, recursive, row, scrollable, text, WRAP } from "../components"
-import { add, block, set } from "../../language"
+import { adapters, background, border, button, column, grow, MATCH, observe, onClick, onInit, padding, recursive, row, scrollable, text, WRAP } from "../components"
+import { add, block, condition, declare, eq, result, set } from "../../language"
 import CreateFolder from './create_folder.svg'
 import CreateFile from './create_file.svg'
 import { Router } from "express"
 
-const File = text<AdminState, ComponentFile>(WRAP, WRAP, [
+import { File } from '@prisma/client'
+
+const File = text<AdminState, File>(WRAP, WRAP, [
     padding([16, 16, 0, 16]),
     observe(({
         local,
@@ -14,7 +15,7 @@ const File = text<AdminState, ComponentFile>(WRAP, WRAP, [
     }) => set(event.text, local.name))
 ])
 
-const Folder : ComponentFromConfig<AdminState, ComponentFolder> = column<AdminState, ComponentFolder>(MATCH, WRAP, [
+const Folder : ComponentFromConfig<AdminState, File> = column<AdminState, File>(MATCH, WRAP, [
     padding([16, 16, 0, 16]),
     row(MATCH, WRAP, [
         text(WRAP, WRAP, [
@@ -28,26 +29,46 @@ const Folder : ComponentFromConfig<AdminState, ComponentFolder> = column<AdminSt
                 "Add File"
             ]),
             onClick(({
-                local,
-                _
-            }) => set(local.children, _.concat(local.children, [{
-                adapter : "file",
-                contents : "",
-                name : add("File_", _.toString(local.children.length))
-            }])))
+                global,
+                fetch,
+                JSON,
+                local
+            }) => block([
+                fetch("/api/file", {
+                    method : "POST",
+                    headers : {
+                        "Content-Type" : "application/json; charset=utf-8"
+                    },
+                    body : JSON.stringify({
+                        branchId : global.branch.id,
+                        isFolder : false,
+                        parentId : local.id,
+                    })
+                })
+            ])),
         ]),
         button(WRAP, WRAP, [
             text(WRAP, WRAP, [
                 "Add Folder"
             ]),
             onClick(({
-                local,
-                _
-            }) => set(local.children, _.concat(local.children, [{
-                adapter : "folder",
-                children : [],
-                name : add("Folder_", _.toString(local.children.length))
-            }])))
+                global,
+                fetch,
+                JSON,
+                local
+            }) => block([
+                fetch("/api/file", {
+                    method : "POST",
+                    headers : {
+                        "Content-Type" : "application/json; charset=utf-8"
+                    },
+                    body : JSON.stringify({
+                        branchId : global.branch.id,
+                        isFolder : true,
+                        parentId : local.id,
+                    })
+                })
+            ])),
         ]),
     ]),
     column(MATCH, WRAP, [
@@ -60,18 +81,55 @@ const Folder : ComponentFromConfig<AdminState, ComponentFolder> = column<AdminSt
         }),
         observe(({
             event,
-            local
-        }) => set(event.data, local.children))
+            local,
+            global,
+            _
+        }) => set(event.data, _.map(_.filter(global.files, ({
+            item
+        }) => result(eq(item.parentId, local.id))), ({ item }) => condition(item.isFolder, result(_.assign<File & {
+            adapter : string
+        }>(item, {
+            adapter : "folder"
+        }))).otherwise(result(_.assign<File & {
+            adapter : string
+        }>(item, {
+            adapter : "file"
+        }))))))
     ]),
 ])
 
+const PLACEHOLDER = []
+
 export const Components = (dependencies : Dependencies) => {
-    const database = dependencies.get("admin:database") as Database
     const name = "Components"
-    dependencies.add("admin:header", Tab(name))
     dependencies.add("admin:main", Body({
         name,
         content : row(MATCH, MATCH, [
+            onInit(({
+                fetch,
+                global,
+                JSON,
+                socket,
+                _
+            }) => block([
+                socket.on("file", ({ data }) => block([
+                    set(global.files, _.upsert<File>(global.files, data))
+                ])),
+                fetch("/api/project", {
+                    callback : ({
+                        body
+                    }) => declare(({
+                        json
+                    }) => [
+                        set(global.project, json.project),
+                        set(global.branch, json.branch),
+                        set(global.files, json.files),
+                        set(global.components, json.components),
+                    ], {
+                        json : JSON.parse(body)
+                    })
+                })
+            ])),
             scrollable(.3, MATCH, [
                 background("yellow"),
                 column(MATCH, WRAP, [
@@ -86,12 +144,22 @@ export const Components = (dependencies : Dependencies) => {
                             ]),
                             onClick(({
                                 global,
-                                _
-                            }) => set(global.Components.files, _.concat(global.Components.files, [{
-                                adapter : "file",
-                                contents : "",
-                                name : add("File_", _.toString(global.Components.files.length))
-                            }]))),
+                                _,
+                                fetch,
+                                JSON
+                            }) => block([
+                                fetch("/api/file", {
+                                    method : "POST",
+                                    headers : {
+                                        "Content-Type" : "application/json; charset=utf-8"
+                                    },
+                                    body : JSON.stringify({
+                                        branchId : global.branch.id,
+                                        isFolder : false,
+                                        parentId : null,
+                                    })
+                                })
+                            ])),
                         ]),
                         button(WRAP, WRAP, [
                             text(WRAP, WRAP, [
@@ -99,12 +167,21 @@ export const Components = (dependencies : Dependencies) => {
                             ]),
                             onClick(({
                                 global,
-                                _
-                            }) => set(global.Components.files, _.concat(global.Components.files, [{
-                                adapter : "folder",
-                                children : [],
-                                name : add("Folder_", _.toString(global.Components.files.length))
-                            }]))),
+                                fetch,
+                                JSON
+                            }) => block([
+                                fetch("/api/file", {
+                                    method : "POST",
+                                    headers : {
+                                        "Content-Type" : "application/json; charset=utf-8"
+                                    },
+                                    body : JSON.stringify({
+                                        branchId : global.branch.id,
+                                        isFolder : true,
+                                        parentId : null,
+                                    })
+                                })
+                            ])),
                         ]),
                     ]),
                     column(MATCH, WRAP, [
@@ -113,8 +190,27 @@ export const Components = (dependencies : Dependencies) => {
                         }),
                         observe(({
                             event,
-                            global
-                        }) => set(event.data, global.Components.files)),
+                            global,
+                            _
+                        }) => set(event.data, _.map(_.filter(global.files, ({
+                            item
+                        }) => result(eq(item.parentId, null))), ({
+                            item
+                        }) => 
+                            condition(item.isFolder, 
+                                result(_.assign<File & {
+                                    adapter : string
+                                }>(item, {
+                                    adapter : "folder"
+                                }))
+                            ).otherwise(
+                                result(_.assign<File & {
+                                    adapter : string
+                                }>(item, {
+                                    adapter : "file"
+                                }))
+                            ),
+                        ))),
                         adapters({
                             folder : Folder,
                             file : File
@@ -128,8 +224,4 @@ export const Components = (dependencies : Dependencies) => {
             ])
         ])
     }))
-    const router = dependencies.get("router") as Router
-    router.post("/api/component", (_, res) => {
-        res.status(200).send("TODO")
-    })
 }

@@ -185,6 +185,11 @@ export const code = <T = unknown>(callback: (scope: {
 				},
 				setTimeout: () => 0,
 				parseFloat: () => 0,
+				socket : {
+					on : () => {
+						// DO NOTHING
+					}
+				},
 				_: {
 					toLowerCase: () => "",
 					split: () => [],
@@ -444,6 +449,11 @@ export const execute = <T>(
 				Date: PollyDate,
 				encodeURIComponent,
 				parseFloat,
+				socket : {
+					on : () => {
+						// DO NOTHING
+					}
+				},
 				_: {
 					toLowerCase: (input : string) => input.toLowerCase(),
 					split: (input : string, token : string) => input.split(new RegExp(token)) ,
@@ -798,8 +808,7 @@ ${tabs}}${otherwise}`;
 	case "fun": {
 		const body : string[] = [
 			...code.args.map(it => `${tabs}\tvar ${it} = args.${it};`),
-			render(code.body, `${tabs}\t`),
-			`${tabs}\treturn state`
+			render(code.body, `${tabs}\t`)
 		];
 		return `function (args) {
 ${body.join("\n")}

@@ -10,8 +10,8 @@ datasource db {
 model Project {
     id String @id
 
-    latestBranchId String
-    latestBranch Branch @relation(fields: [latestBranchId], references: [id], name : "latestBranch") 
+    latestBranchId String?
+    latestBranch Branch? @relation(fields: [latestBranchId], references: [id], name : "latestBranch") 
 
     branches Branch[]
 }
@@ -22,50 +22,45 @@ model Branch {
     projectId String
     project Project @relation(fields: [projectId], references: [id])
 
-    previousBranchId String
-    previousBranch Branch @relation(fields: [previousBranchId], references: [id], name: "branchLink")
+    previousBranchId String?
+    previousBranch Branch? @relation(fields: [previousBranchId], references: [id], name: "branchLink")
 
     nextBranch Branch? @relation(name: "branchLink")
 
     activeProject Project? @relation(name : "latestBranch")
 
     files File[]
+
+    components Component[]
 }
 
 model File {
     id Int @id @default(autoincrement())
     uiId String
     isFolder Boolean
+    name String
 
     branchId String 
     branch Branch @relation(fields: [branchId], references: [id])
 
-    parentId Int
+    parentId Int?
     parent File? @relation(fields: [parentId], references: [id], name: "folder")
     children File[] @relation(name : "folder")
+
+    component Component?
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String   @db.VarChar(255)
-  createdAt DateTime @default(now()) @db.Timestamp(6)
-  content   String?
-  published Boolean  @default(false)
-  authorId  Int
-  User      User     @relation(fields: [authorId], references: [id])
-}
+model Component {
+    id Int @id @default(autoincrement())
+    uiId String
 
-model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  userId Int     @unique
-  User   User    @relation(fields: [userId], references: [id])
-}
+    branchId String 
+    branch Branch @relation(fields: [branchId], references: [id])
 
-model User {
-  id      Int      @id @default(autoincrement())
-  name    String?  @db.VarChar(255)
-  email   String   @unique @db.VarChar(255)
-  Post    Post[]
-  Profile Profile?
+    fileId Int 
+    file File @relation(fields: [fileId], references: [id])
+
+    parentId Int?
+    parent Component? @relation(fields: [parentId], references: [id], name: "component")
+    children Component[] @relation(name : "component")
 }

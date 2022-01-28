@@ -1,9 +1,6 @@
 const {
     default : collabreate,
     Components,
-    Deploy,
-    Branches,
-    Projects,
     WebSockets,
     Database
 } = require("../dist/index.js");
@@ -15,13 +12,15 @@ const app = express();
 const server = http.createServer(app)
 
 app.use(collabreate([
+    WebSockets(server),
     Database,
-    Projects,
-    Branches,
     Components,
-    Deploy,
-    WebSockets(server)
 ]))
+
+app.use((err, req, res, next) => {
+    console.error(err.stack)
+    res.status(500).send('Something broke!')
+})
 
 server.listen(process.env.PORT || 80, () => {
     console.log("listening on port 80");

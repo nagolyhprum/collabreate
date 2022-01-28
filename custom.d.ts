@@ -24,22 +24,11 @@ type GlobalState = {
     __ : boolean
 }
 
-type ComponentFile = {
-    adapter : "file"
-    name : string
-    contents : string   
-}
-
-type ComponentFolder = {
-    adapter : "folder"
-    name : string
-    children : Array<ComponentFile | ComponentFolder>
-}
-
 type AdminState = GlobalState & {
-    Components : {
-        files : Array<ComponentFolder | ComponentFile>
-    }
+    files : import("@prisma/client").File[]
+    components : import("@prisma/client").Component[]
+    project : import("@prisma/client").Project
+    branch : import("@prisma/client").Branch
     selectedDirectory : string
 }
 
@@ -54,11 +43,17 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
     index : number
     _ : UnderscoreProgramming
     console : Console
+    fetch : PollyFetch
+    JSON : JSON
+    socket : {
+        on : (name : string, callback : (config : { data : any }) => ProgrammingLanguage) => void
+    }
 }
 
 type ComponentEvents<Global extends GlobalState, Local> = {
     observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => ProgrammingLanguage>
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onInit?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
 }
 
 type BoxProp<Type> = {
@@ -280,7 +275,9 @@ type UnderscoreProgramming = {
     }) => ProgrammingLanguage) => T[]
     compare: <T>(a: T, b: T) => number
     upsert: <T extends {
-        key: string
+        id: string | number
+    } | {
+        key: string | number
     }>(list: T[], item: T) => T[]
 }
 

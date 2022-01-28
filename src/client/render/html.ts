@@ -124,6 +124,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
                 props.style.display = "none";
             }
             return props;
+        case "onInit":
         case "onClick":
         case "observe":
         case "children":
@@ -220,6 +221,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             }
             return;
         }
+        case "onInit":
         case "observe":
         case "onClick": {
             const id = `${name}:${component.id}`

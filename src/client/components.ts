@@ -162,6 +162,7 @@ export const grow = setProperty("grow");
 
 export const observe = event("observe");
 export const onClick = event("onClick")
+export const onInit = event("onInit")
 
 export const adapters = <Global extends GlobalState, Local>(
     adapter : Adapter<Global>
