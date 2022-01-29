@@ -32,18 +32,35 @@ function failed(_ : never) {
     throw new Error("this should never happen")
 }
 
-const getTagName = (name : Tag) : string => {
+const getTagName = (name : Tag) : {
+    name : string
+    selfClosing : boolean
+} => {
     switch(name) {        
         case "button":
-            return "button";
+            return {
+                name : "button",
+                selfClosing : false
+            };
         case "text":
-            return "span";
+            return {
+                name : "span",
+                selfClosing : false
+            };
         case "stack":
         case "scrollable":
         case "row":
         case "root":
         case "column":
-            return "div";
+            return {
+                name : "div",
+                selfClosing : false
+            };
+        case "input":
+            return {
+                name : "input",
+                selfClosing : true
+            }
     }
     failed(name);
 }
@@ -124,13 +141,24 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
                 props.style.display = "none";
             }
             return props;
+        case "value":
+            props.value = value?.toString() ?? "";
+            return props;
+        case "placeholder":
+            props.placeholder = value?.toString() ?? ""
+            return props;
+        case "enabled":
+            props.disabled = value === false ? "disabled" : ""
+            return props;
         case "onInit":
         case "onClick":
+        case "onInput":
         case "observe":
         case "children":
         case "text":
         case "adapter":
         case "data":
+        case "focus":
             // DO NOTHING
             return props;
     }
@@ -223,6 +251,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         }
         case "onInit":
         case "observe":
+        case "onInput":
         case "onClick": {
             const id = `${name}:${component.id}`
             if(!output.cache.has(id)) {
@@ -248,6 +277,10 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "grow":
         case "data":
         case "position":
+        case "value":
+        case "placeholder":
+        case "enabled":
+        case "focus":
             return;
     }
     failed(name);
@@ -266,7 +299,10 @@ const handle = <Global extends GlobalState, Local>({
     global : Global
     output : DocumentOutput
 }) : DocumentOutput => {
-    const name = getTagName(component.name);
+    const {
+        name,
+        selfClosing
+    } = getTagName(component.name);
 
     if(component.observe) {
         component.observe.forEach(callback => {
@@ -302,8 +338,11 @@ const handle = <Global extends GlobalState, Local>({
         }
     }).filter(_ => _).join(" ")
 
-    output.html.push(`<${name} ${render}>`)
-
+    if(selfClosing) {
+        output.html.push(`<${name} ${render}/>`)
+    } else {
+        output.html.push(`<${name} ${render}>`)
+    }
     keys(component).forEach((name) => {
         handleChildren({
             component,
@@ -314,8 +353,9 @@ const handle = <Global extends GlobalState, Local>({
             value : component[name]
         })
     })
-
-    output.html.push(`</${name}>`)
+    if(!selfClosing) {
+        output.html.push(`</${name}>`)
+    }
 
     return output
 }

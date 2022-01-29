@@ -96,7 +96,37 @@ export const Database = (dependencies : Dependencies) => {
                 uiId : crypto.randomBytes(20).toString('hex'),
             }
         })
-        io.to(`${domain}_${subdomain}`).emit("file", file);
+        io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
+        res.status(200).end()
+    })
+    router.patch("/api/file", async (req, res) => {
+        const {
+            domain,
+            subdomain
+        } = getMains(req.header("host"))
+        const file = await prisma.file.update({
+            where : {
+                id : req.body.id
+            },            
+            data : {
+                parentId : req.body.parentId,
+                name : req.body.name
+            }
+        })
+        io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
+        res.status(200).end()
+    })
+    router.delete("/api/file", async (req, res) => {
+        const {
+            domain,
+            subdomain
+        } = getMains(req.header("host"))
+        await prisma.file.delete({
+            where : {
+                id : req.body.id
+            }
+        })
+        io.to(`${domain}_${subdomain}`).emit("file.remove", req.body.id);
         res.status(200).end()
     })
 };

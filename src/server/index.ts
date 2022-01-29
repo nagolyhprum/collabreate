@@ -51,7 +51,7 @@ var _ = {
         })
         if(item) {
             const index = list.indexOf(item);
-            return [].concat(list.slice(0, index), [upsert], list.slice(index));
+            return [].concat(list.slice(0, index), [Object.assign(item, upsert)], list.slice(index + 1));
         } else {
             return list.concat([upsert]);
         }
@@ -128,6 +128,19 @@ function Component(component) {
             if(cache[key] !== value) {
                 cache[key] = value;
                 switch(key) {
+                    case "focus":
+                        target.focus();
+                        target.setSelectionRange(0, target.value.length);
+                        return;
+                    case "enabled":
+                        target.disabled = !value;
+                        return;
+                    case "placeholder":
+                        target.placeholder = value;
+                        return;
+                    case "value":
+                        target.value = value;
+                        return;
                     case "text":
                         target.innerText = value;
                         return;
@@ -168,7 +181,12 @@ function bind(root, local) {
         var toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
             var callback = toBind[event];
-            if(event === "onClick") {
+            if(event === "onInput") {
+                component.oninput = function() {
+                    callback(local.value, local.index, this.value);
+                    update();
+                };
+            } else if(event === "onClick") {
                 component.onclick = function() {
                     callback(local.value, local.index/*,event*/);
                     update();
@@ -233,6 +251,18 @@ export default (modules : Module[]) => {
             project : {
                 id : "",
                 latestBranchId : ""
+            },
+            modal : {
+                remove : {
+                    id : -1,
+                    name : "",
+                    input : ""
+                },
+                rename : {
+                    id : -1,
+                    name : "",
+                    input : ""
+                }
             },
             __ : true
         }

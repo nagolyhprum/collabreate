@@ -17,7 +17,7 @@ type DocumentOutput = {
 
 type Unarray<T> = T extends Array<infer U> ? U : T;
 
-type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack"
+type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack" | "input"
 
 type GlobalState = {
     // I ADDED THIS SO THAT I GET TYPE ERRORS
@@ -30,6 +30,18 @@ type AdminState = GlobalState & {
     project : import("@prisma/client").Project
     branch : import("@prisma/client").Branch
     selectedDirectory : string
+    modal : {
+        rename : {
+            id : number
+            name : string
+            input : string
+        }
+        remove : {
+            id : number
+            name : string
+            input : string
+        }
+    }
 }
 
 type TagProps = Record<string, string> & {
@@ -54,6 +66,7 @@ type ComponentEvents<Global extends GlobalState, Local> = {
     observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => ProgrammingLanguage>
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInit?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onInput?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>
 }
 
 type BoxProp<Type> = {
@@ -78,7 +91,10 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     width : number
     height : number
     name : Tag
+    focus?: any
+    enabled?: boolean
     visible?: boolean
+    placeholder? : string
     id? : string
     children?: Array<Component<Global, Local>>
     text?: string
@@ -88,7 +104,7 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     data?: Array<Record<string, unknown> & {
         adapter : string
     }>
-    // TODO REMOVE
+    value?: string | boolean
 }
 
 type Adapter<Global extends GlobalState> = {
@@ -224,7 +240,7 @@ type PollyJSON = {
 type PollyFetch = (url: string, config: {
     body?: string
     headers?: Record<string, string>
-    method?: "POST" | "GET" | "PUT" | "DELETE"
+    method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
     callback?: (response: {
         status: number
         body: string

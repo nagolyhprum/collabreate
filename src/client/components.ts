@@ -152,17 +152,20 @@ export const button = tag("button");
 export const scrollable = tag("scrollable");
 export const text = tag("text");
 export const stack = tag("stack");
+export const input = tag("input");
 
 // PROPS
 
 export const background = setProperty("background");
 export const grow = setProperty("grow");
+export const id = setProperty("id");
 
 // EVENTS
 
 export const observe = event("observe");
 export const onClick = event("onClick")
 export const onInit = event("onInit")
+export const onInput = event("onInput")
 
 export const adapters = <Global extends GlobalState, Local>(
     adapter : Adapter<Global>
