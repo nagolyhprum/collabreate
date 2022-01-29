@@ -1,6 +1,6 @@
 import { Body } from "../shared"
-import { adapters, background, border, button, column, grow, id, input, MATCH, observe, onClick, onInit, onInput, padding, position, recursive, row, scrollable, stack, text, WRAP } from "../../components"
-import { add, block, condition, declare, eq, not, result, set, symbol } from "../../../language"
+import { adapters, background, border, button, column, grow, id, input, MATCH, observe, onClick, onInit, onInput, onSelect, option, padding, position, recursive, row, scrollable, select, stack, text, value, WRAP } from "../../components"
+import { add, and, block, condition, declare, eq, not, result, set, symbol } from "../../../language"
 import CreateFolder from '../create_folder.svg'
 import CreateFile from '../create_file.svg'
 
@@ -27,6 +27,22 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
                 id : local.id,
                 name : local.name,
                 input : local.name
+            }
+        ))
+    ]),
+    button(WRAP, WRAP, [
+        text(WRAP, WRAP, [
+            "Move"
+        ]),
+        onClick(({
+            global,
+            local
+        }) => set(
+            global.modal.move,
+            {
+                id : local.id,
+                name : local.name,
+                parentId : local.parentId
             }
         ))
     ]),
@@ -87,6 +103,22 @@ const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminStat
                     id : local.id,
                     name : local.name,
                     input : local.name
+                }
+            ))
+        ]),
+        button(WRAP, WRAP, [
+            text(WRAP, WRAP, [
+                "Move"
+            ]),
+            onClick(({
+                global,
+                local
+            }) => set(
+                global.modal.move,
+                {
+                    id : local.id,
+                    name : local.name,
+                    parentId : local.parentId
                 }
             ))
         ]),
@@ -343,6 +375,112 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
+const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+    observe(({
+        event,
+        global
+    }) => set(event.visible, not(eq(global.modal.move.id, -1)))),
+    background("rgba(0, 0, 0, 0.7)"),
+    position({
+        top : 0,
+        left : 0,
+    }),
+    column(WRAP, WRAP, [
+        background("white"),
+        padding(16),
+        position({
+            left : .5,
+            top : .5
+        }),
+        text(WRAP, WRAP, [
+            observe(({
+                event,
+                global
+            }) => set(event.text, add("Where would you like to move ", global.modal.move.name)))
+        ]),
+        select(MATCH, WRAP, [
+            onSelect(({
+                event,
+                global,
+                JSON
+            }) => set(global.modal.move.parentId, JSON.parse(event))),
+            observe(({
+                event,
+                global,
+                _
+            }) => block([
+                set(event.data, _.concat([{
+                    adapter : "option",
+                    label : "<root>",
+                    value : "null"
+                }], _.map(
+                        _.filter(global.files, ({
+                            item
+                        }) => result(
+                            and(
+                                not(eq(item.id, global.modal.move.id)),
+                                item.isFolder
+                            )
+                        )),
+                        ({ item }) => result({
+                            adapter : "option",
+                            label : item.name,
+                            value : item.id
+                        })
+                    )
+                )),
+                set(event.value, global.modal.move.parentId)
+            ])),
+            adapters({
+                option : option<AdminState, {
+                    label : string
+                    value : string
+                }>([
+                    observe(({
+                        event,
+                        local
+                    }) => block([
+                        set(event.text, local.label),
+                        set(event.value, local.value),
+                    ]))
+                ]),
+            })
+        ]),
+        row(MATCH, WRAP, [
+            button(WRAP, WRAP, [
+                onClick(({
+                    global
+                }) => set(global.modal.move.id, -1)),
+                text(WRAP, WRAP, [
+                    "Cancel"
+                ])
+            ]),
+            button(WRAP, WRAP, [
+                onClick(({
+                    global,
+                    fetch,
+                    JSON
+                }) => block([
+                    fetch("/api/file", {
+                        method : "PATCH",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body : JSON.stringify({
+                            id : global.modal.move.id,
+                            parentId : global.modal.move.parentId
+                        })
+                    }),
+                    set(global.modal.move.id, -1),
+                ])),
+                text(WRAP, WRAP, [
+                    "Move"
+                ])
+            ]),
+        ])
+    ])
+])
+
 const Root = row<AdminState, AdminState>(MATCH, MATCH, [
     onInit(({
         fetch,
@@ -490,4 +628,5 @@ const Root = row<AdminState, AdminState>(MATCH, MATCH, [
     ]),
     RenameModal,
     RemoveModal,
+    MoveModal,
 ])

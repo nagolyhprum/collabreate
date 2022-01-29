@@ -153,12 +153,17 @@ export const scrollable = tag("scrollable");
 export const text = tag("text");
 export const stack = tag("stack");
 export const input = tag("input");
+export const select = tag("select");
+export const option = <Global extends GlobalState, Local>(
+    props : Array<string | ComponentFromConfig<Global, Local>>
+) => tag("option")(WRAP, WRAP, props);
 
 // PROPS
 
 export const background = setProperty("background");
 export const grow = setProperty("grow");
 export const id = setProperty("id");
+export const value = setProperty("value");
 
 // EVENTS
 
@@ -166,6 +171,7 @@ export const observe = event("observe");
 export const onClick = event("onClick")
 export const onInit = event("onInit")
 export const onInput = event("onInput")
+export const onSelect = event("onSelect")
 
 export const adapters = <Global extends GlobalState, Local>(
     adapter : Adapter<Global>

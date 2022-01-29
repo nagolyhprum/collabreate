@@ -17,7 +17,7 @@ type DocumentOutput = {
 
 type Unarray<T> = T extends Array<infer U> ? U : T;
 
-type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack" | "input"
+type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack" | "input" | "select" | "option"
 
 type GlobalState = {
     // I ADDED THIS SO THAT I GET TYPE ERRORS
@@ -43,6 +43,11 @@ type AdminState = GlobalState & {
             id : number
             name : string
             input : string
+        }
+        move : {
+            id : number
+            name : string
+            parentId : number | null
         }
     }
 }
@@ -70,6 +75,7 @@ type ComponentEvents<Global extends GlobalState, Local> = {
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInit?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInput?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>
+    onSelect?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>
 }
 
 type BoxProp<Type> = {
@@ -107,7 +113,7 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     data?: Array<Record<string, unknown> & {
         adapter : string
     }>
-    value?: string | boolean
+    value?: any
 }
 
 type Adapter<Global extends GlobalState> = {

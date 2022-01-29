@@ -37,9 +37,11 @@ const getTagName = (name : Tag) : {
     selfClosing : boolean
 } => {
     switch(name) {        
+        case "option":
+        case "select":
         case "button":
             return {
-                name : "button",
+                name,
                 selfClosing : false
             };
         case "text":
@@ -154,6 +156,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "onClick":
         case "onInput":
         case "observe":
+        case "onSelect":
         case "children":
         case "text":
         case "adapter":
@@ -252,6 +255,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "onInit":
         case "observe":
         case "onInput":
+        case "onSelect":
         case "onClick": {
             const id = `${name}:${component.id}`
             if(!output.cache.has(id)) {

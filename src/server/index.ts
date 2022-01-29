@@ -181,7 +181,12 @@ function bind(root, local) {
         var toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
             var callback = toBind[event];
-            if(event === "onInput") {
+            if(event === "onSelect") {
+                component.onchange = function() {
+                    callback(local.value, local.index, this.value);
+                    update();
+                };
+            } else if(event === "onInput") {
                 component.oninput = function() {
                     callback(local.value, local.index, this.value);
                     update();
@@ -263,6 +268,11 @@ export default (modules : Module[]) => {
                     id : -1,
                     name : "",
                     input : ""
+                },
+                move : {
+                    id : -1,
+                    name : "",
+                    parentId : null
                 }
             },
             __ : true
