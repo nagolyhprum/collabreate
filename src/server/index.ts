@@ -153,6 +153,7 @@ function Component(component) {
                             bind(child, Local(item, index))
                             target.appendChild(child)
                         }
+                        target.value = cache.value;
                         return;
                     case "background":
                         target.style.background = value;
