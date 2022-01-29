@@ -240,6 +240,7 @@ export default (modules : Module[]) => {
     modules.map(it => it(dependencies))
     router.get("/admin", async (_, res) => {
         const state : AdminState = {
+            ui : {},
             selectedDirectory : "components",
             files : [],
             components : [],

@@ -22,6 +22,9 @@ type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack
 type GlobalState = {
     // I ADDED THIS SO THAT I GET TYPE ERRORS
     __ : boolean
+    ui : {
+        [key : string] : any
+    }
 }
 
 type AdminState = GlobalState & {

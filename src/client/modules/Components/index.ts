@@ -1,6 +1,6 @@
 import { Body } from "../shared"
 import { adapters, background, border, button, column, grow, id, input, MATCH, observe, onClick, onInit, onInput, padding, position, recursive, row, scrollable, stack, text, WRAP } from "../../components"
-import { add, block, condition, declare, eq, not, result, set } from "../../../language"
+import { add, block, condition, declare, eq, not, result, set, symbol } from "../../../language"
 import CreateFolder from '../create_folder.svg'
 import CreateFile from '../create_file.svg'
 
@@ -51,6 +51,23 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
 const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminState, File>(MATCH, WRAP, [
     padding([16, 16, 0, 16]),
     row(MATCH, WRAP, [
+        button(WRAP, WRAP, [
+            onClick(({
+                local,
+                global
+            }) => set(symbol(global.ui, local.id), not(symbol(global.ui, local.id)))),
+            text(WRAP, WRAP, [
+                observe(({
+                    event,
+                    local,
+                    global
+                }) => condition(symbol(global.ui, local.id), 
+                    set(event.text, "-")
+                ).otherwise(
+                    set(event.text, "+")                    
+                ))
+            ])
+        ]),
         text(WRAP, WRAP, [
             observe(({
                 local,
@@ -99,6 +116,7 @@ const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminStat
                 JSON,
                 local
             }) => block([
+                set(symbol(global.ui, local.id), true),
                 fetch("/api/file", {
                     method : "POST",
                     headers : {
@@ -137,6 +155,11 @@ const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminStat
         ]),
     ]),
     column(MATCH, WRAP, [
+        observe(({
+            event,
+            local,
+            global
+        }) => set(event.visible, symbol(global.ui, local.id))),
         border({
             left : [1, "solid", "black"]
         }),
@@ -329,10 +352,19 @@ const Root = row<AdminState, AdminState>(MATCH, MATCH, [
         _
     }) => block([
         socket.on("file.upsert", ({ data }) => block([
-            set(global.files, _.upsert<File>(global.files, data))
+            set(global.files, _.upsert(global.files, data))
         ])),
         socket.on("file.remove", ({ data }) => block([
-            set(global.files, _.filter<File>(global.files, ({ item }) => result(not(eq(item.id, data)))))
+            set(global.files, 
+                _.map(
+                    _.filter(global.files, ({ item }) => result(not(eq(item.id, data)))),
+                    ({
+                        item
+                    }) => condition(eq(item.parentId, data), result(_.assign(item, {
+                        parentId : null
+                    }))).otherwise(result(item))
+                )                
+            ),
         ])),
         fetch("/api/project", {
             callback : ({
