@@ -12,13 +12,13 @@ const validate = <Global extends GlobalState, Local>(component : Component<Globa
         console.warn("a single component should not have two children types")
     }
 
-    if(component.text && component.name !== "text") {
-        console.warn("should only have text in text components")
-    }
+    // if(component.name !== "text" && component.text) {
+    //     console.warn("should only have text in text components")
+    // }
 
-    if(component.name === "text" && (!component.text)) {
-        console.warn("all text fields should have their text set")
-    }
+    // if(component.name === "text" && (!component.text)) {
+    //     console.warn("all text fields should have their text set")
+    // }
 }
 
 const tag = (name : Tag) => <Global extends GlobalState, Local>(

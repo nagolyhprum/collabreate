@@ -20,8 +20,6 @@ type Unarray<T> = T extends Array<infer U> ? U : T;
 type Tag = "row" | "root" | "column" | "text" | "button" | "scrollable" | "stack" | "input" | "select" | "option"
 
 type GlobalState = {
-    // I ADDED THIS SO THAT I GET TYPE ERRORS
-    __ : boolean
     ui : {
         [key : string] : any
     }
@@ -62,12 +60,21 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
     event : Type
     index : number
     _ : UnderscoreProgramming
-    console : Console
+    console : ConsoleProgramming
     fetch : PollyFetch
-    JSON : JSON
+    JSON : JSONProgramming
     socket : {
         on : (name : string, callback : (config : { data : any }) => ProgrammingLanguage) => void
     }
+}
+
+type ConsoleProgramming = {
+    log : (...args : any[]) => void
+}
+
+type JSONProgramming = {
+    parse : (input : string) => any
+    stringify : (input : any) => string
 }
 
 type ComponentEvents<Global extends GlobalState, Local> = {

@@ -2,6 +2,7 @@ import express, { Router } from "express"
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
+import { defaultAdminState } from "./state";
 
 const document = ({
     scripts,
@@ -245,39 +246,7 @@ export default (modules : Module[]) => {
     dependencies.set("router", router);
     modules.map(it => it(dependencies))
     router.get("/admin", async (_, res) => {
-        const state : AdminState = {
-            ui : {},
-            selectedDirectory : "components",
-            files : [],
-            components : [],
-            branch : {
-                id : "",
-                previousBranchId : "",
-                projectId : ""
-            },
-            project : {
-                id : "",
-                latestBranchId : ""
-            },
-            modal : {
-                remove : {
-                    id : -1,
-                    name : "",
-                    input : ""
-                },
-                rename : {
-                    id : -1,
-                    name : "",
-                    input : ""
-                },
-                move : {
-                    id : -1,
-                    name : "",
-                    parentId : null
-                }
-            },
-            __ : true
-        }
+        const state : AdminState = defaultAdminState()
         const {
             html,
             js

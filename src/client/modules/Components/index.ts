@@ -64,7 +64,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
     ]),
 ])
 
-const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminState, File>(MATCH, WRAP, [
+export const FolderComponent : ComponentFromConfig<AdminState, File> = column<AdminState, File>(MATCH, WRAP, [
     padding([16, 16, 0, 16]),
     row(MATCH, WRAP, [
         button(WRAP, WRAP, [
@@ -226,7 +226,7 @@ export const Components = (dependencies : Dependencies) => {
     }))
 }
 
-const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     observe(({
         event,
         global
@@ -250,6 +250,7 @@ const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             }) => set(event.text, add("Renaming: ", global.modal.rename.name)))
         ]),
         input(MATCH, WRAP, [
+            id("rename_modal_name_input"),
             observe(({
                 event,
                 global
@@ -272,6 +273,7 @@ const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 ])
             ]),
             button(WRAP, WRAP, [
+                id("rename_modal_save_button"),
                 observe(({
                     event,
                     global
@@ -375,7 +377,7 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     observe(({
         event,
         global
@@ -481,7 +483,7 @@ const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-const Root = row<AdminState, AdminState>(MATCH, MATCH, [
+export const Root = row<AdminState, AdminState>(MATCH, MATCH, [
     onInit(({
         fetch,
         global,
