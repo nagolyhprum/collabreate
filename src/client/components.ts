@@ -189,6 +189,10 @@ export const test = <Global extends GlobalState, Local>(
             name : "root",            
         }
     })
+    const init = (document = root) => {
+        trigger(document, "onInit");
+        (document.children ?? []).forEach(init);
+    }
     const update = (document = root) => {
         (document.observe ?? []).forEach((callback) => {
             const generated = code(callback, new Set([]))
@@ -224,16 +228,22 @@ export const test = <Global extends GlobalState, Local>(
             console.warn("all text fields should have their text set")
         }
     }
-    update()
-    return {
-        trigger(
-            id : string, 
-            name : keyof ComponentEvents<Global, Local>, 
-            event?: any
-        ) {
-            const component = this.id(id);
-            if(component?.enabled !== false) {
-                (component?.[name] ?? []).forEach(callback => {
+    const triggerById = (
+        id : string, 
+        name : keyof ComponentEvents<Global, Local>, 
+        event?: any
+    ) : boolean => {
+        return trigger(api.id(id), name, event)
+    }
+    const trigger = (
+        component : Component<Global, Local> | null, 
+        name : keyof ComponentEvents<Global, Local>, 
+        event?: any
+    ) : boolean => {
+        if(component?.enabled !== false) {
+            const callbacks = component?.[name]
+            if(callbacks && callbacks.length) {
+                callbacks.forEach(callback => {
                     const generated = code(callback as any, new Set([]))
                     execute(generated, {
                         event,
@@ -243,14 +253,26 @@ export const test = <Global extends GlobalState, Local>(
                         ...mocks
                     })
                 })
+                return true
             }
-            update()
-        },
+        }
+        return false
+    }
+    const api = {
         input(id : string, event : string) {
-            this.trigger(id, "onInput", event)
+            if(triggerById(id, "onInput", event)) {
+                update()
+            }
         },
         click(id : string) {
-            this.trigger(id, "onClick")
+            if(triggerById(id, "onClick")) {
+                update()
+            }
+        },
+        select(id : string, event : string) {
+            if(triggerById(id, "onSelect", event)) {
+                update()
+            }
         },
         id(id : string, document = root) : Component<Global, Local> | null {
             if(document.id === id) {
@@ -260,4 +282,7 @@ export const test = <Global extends GlobalState, Local>(
             }
         }
     }
+    init()
+    update()
+    return api;
 }

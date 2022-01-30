@@ -422,6 +422,7 @@ export const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
 ])
 
 export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+    id("move_modal"),
     observe(({
         event,
         global
@@ -439,12 +440,14 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             top : .5
         }),
         text(WRAP, WRAP, [
+            id("move_modal_title"),
             observe(({
                 event,
                 global
             }) => set(event.text, add("Where would you like to move ", global.modal.move.name)))
         ]),
         select(MATCH, WRAP, [
+            id("move_modal_parent_select"),
             onSelect(({
                 event,
                 global,
@@ -494,6 +497,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
         ]),
         row(MATCH, WRAP, [
             button(WRAP, WRAP, [
+                id("move_modal_cancel_button"),
                 onClick(({
                     global
                 }) => set(global.modal.move.id, -1)),
@@ -502,6 +506,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 ])
             ]),
             button(WRAP, WRAP, [
+                id("move_modal_save_button"),
                 onClick(({
                     global,
                     fetch,

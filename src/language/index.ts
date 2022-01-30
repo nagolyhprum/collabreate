@@ -449,6 +449,9 @@ export const execute = <T>(
 				Date: PollyDate,
 				encodeURIComponent,
 				parseFloat,
+				fetch : () => {
+					// DO NOTHING
+				},
 				socket : {
 					on : () => {
 						// DO NOTHING

@@ -1,7 +1,14 @@
 import { File } from '@prisma/client'
 import { defaultAdminState } from '../../server/state'
 import { test } from '../components'
-import { RenameModal, FileComponent, FolderComponent, RemoveModal, MoveModal } from './'
+import { 
+    RenameModal, 
+    FileComponent, 
+    FolderComponent, 
+    RemoveModal, 
+    MoveModal,
+    Editor
+} from './'
 
 describe("Components", () => {
     describe("RenameModal", () => {
@@ -68,7 +75,7 @@ describe("Components", () => {
             id : -1,
             isFolder : false,
             name : "",
-            parentId : -1,
+            parentId : null,
             uiId : "",
             ...file
         })
@@ -131,7 +138,7 @@ describe("Components", () => {
             id : -1,
             isFolder : true,
             name : "",
-            parentId : -1,
+            parentId : null,
             uiId : "",
             ...folder
         })
@@ -320,6 +327,64 @@ describe("Components", () => {
             })
             // it should close now
             expect(document.id("remove_modal")?.visible).toBe(false)
+        })
+    })
+    describe("MoveModal", () => {
+        it("opens and closes", () => {
+            const global = defaultAdminState({
+                modal : {
+                    move : {
+                        id : 1,
+                        parentId : null,
+                        name : "test"
+                    }
+                }
+            })
+            const document = test(MoveModal, global, global)
+            expect(document.id("move_modal_title")?.text).toBe("Where would you like to move test")
+            expect(document.id("move_modal")?.visible).toBe(true)
+            document.click("move_modal_cancel_button")
+            expect(document.id("move_modal")?.visible).toBe(false)
+        })
+        it("can update the parent", () => {
+            const global = defaultAdminState()
+            const document = test(MoveModal, global, global)
+            document.select("move_modal_parent_select", "null")
+            expect(global.modal.move.parentId).toBe(null)
+            document.select("move_modal_parent_select", "1")
+            expect(global.modal.move.parentId).toBe(1)
+        })
+        it("can save", () => {
+            const fetch = jest.fn()
+            const global = defaultAdminState({
+                modal : {
+                    move : {
+                        id : 1,
+                        parentId : 2
+                    }
+                }
+            })
+            const document = test(MoveModal, global, global, {
+                fetch
+            })
+            document.click("move_modal_save_button")
+            expect(fetch).toBeCalledWith("/api/file", {
+                method : "PATCH",
+                headers : {
+                    "Content-Type" : "application/json; charset=utf-8"
+                },
+                body : JSON.stringify({
+                    id : 1,
+                    parentId : 2
+                })
+            })
+
+        })
+    })
+    describe("Editor", () => {
+        it("works!", () => {
+            const global = defaultAdminState()
+            const document = test(Editor, global, global)
         })
     })
 })
