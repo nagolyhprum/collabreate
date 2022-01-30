@@ -1,3 +1,5 @@
+import { code, execute } from "../language";
+
 export const MATCH = -1;
 export const WRAP = -2;
 
@@ -190,4 +192,68 @@ export const recursive = <Global extends GlobalState, Local>(
     config
 ) => {
     return callback()(config)
+}
+
+export const test = <Global extends GlobalState, Local>(
+    component : ComponentFromConfig<Global, Local>,
+    global : Global,
+    local : Local,
+    mocks = {}
+) => {
+    const root = component({
+        global,
+        local,
+        parent : {
+            height : WRAP,
+            width : WRAP,
+            name : "root",            
+        }
+    })
+    const update = (document = root) => {
+        (document.observe ?? []).forEach((callback) => {
+            const generated = code(callback, new Set([]))
+            execute(generated, {
+                event : document,
+                global,
+                index : -1,
+                local,
+                ...mocks
+            })
+        });
+        (document.children ?? []).forEach(update);
+    }
+    update()
+    return {
+        trigger(
+            id : string, 
+            name : keyof ComponentEvents<Global, Local>, 
+            event?: any
+        ) {
+            const component = this.id(id);
+            (component?.[name] ?? []).forEach(callback => {
+                const generated = code(callback as any, new Set([]))
+                execute(generated, {
+                    event,
+                    global,
+                    index : -1,
+                    local,
+                    ...mocks
+                })
+            })
+            update()
+        },
+        input(id : string, event : string) {
+            this.trigger(id, "onInput", event)
+        },
+        click(id : string) {
+            this.trigger(id, "onClick")
+        },
+        id(id : string, document = root) : Component<Global, Local> | null {
+            if(document.id === id) {
+                return document;
+            } else {
+                return (document.children ?? []).reduce((match, child) => match || this.id(id, child), null as (Component<Global, Local> | null))
+            }
+        }
+    }
 }

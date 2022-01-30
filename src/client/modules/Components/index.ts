@@ -8,6 +8,7 @@ import { File } from '@prisma/client'
 
 export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
     text(WRAP, WRAP, [
+        id("file_component_name"),
         padding([16, 16, 0, 16]),
         observe(({
             local,
@@ -15,6 +16,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         }) => set(event.text, local.name))
     ]),
     button(WRAP, WRAP, [
+        id("file_component_rename_buttom"),
         text(WRAP, WRAP, [
             "Rename"
         ]),
@@ -31,6 +33,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         ))
     ]),
     button(WRAP, WRAP, [
+        id("file_component_move_buttom"),
         text(WRAP, WRAP, [
             "Move"
         ]),
@@ -47,6 +50,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         ))
     ]),
     button(WRAP, WRAP, [
+        id("file_component_remove_buttom"),
         text(WRAP, WRAP, [
             "Remove"
         ]),
@@ -227,6 +231,7 @@ export const Components = (dependencies : Dependencies) => {
 }
 
 export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+    id("rename_modal"),
     observe(({
         event,
         global
@@ -244,6 +249,7 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             top : .5
         }),
         text(WRAP, WRAP, [
+            id("rename_modal_title"),
             observe(({
                 event,
                 global
@@ -265,6 +271,7 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
         ]),
         row(MATCH, WRAP, [
             button(WRAP, WRAP, [
+                id("rename_modal_cancel_button"),
                 onClick(({
                     global
                 }) => set(global.modal.rename.id, -1)),
@@ -277,7 +284,7 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 observe(({
                     event,
                     global
-                }) => set(event.enabled, not(eq(global.modal.rename.input.length, 0)))),
+                }) => set(event.enabled, not(eq(global.modal.rename.input, "")))),
                 onClick(({
                     global,
                     fetch,
@@ -323,7 +330,7 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
         text(WRAP, WRAP, [
             observe(({
                 event
-            }) => set(event.text, add("Please confirm the name of the file you would like to remove")))
+            }) => set(event.text, "Please confirm the name of the file you would like to remove"))
         ]),
         input(MATCH, WRAP, [
             observe(({

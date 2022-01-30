@@ -61,7 +61,7 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
     index : number
     _ : UnderscoreProgramming
     console : ConsoleProgramming
-    fetch : PollyFetch
+    fetch : FetchProgramming
     JSON : JSONProgramming
     socket : {
         on : (name : string, callback : (config : { data : any }) => ProgrammingLanguage) => void
@@ -253,7 +253,7 @@ type PollyJSON = {
     parse(input: string): unknown
 }
 
-type PollyFetch = (url: string, config: {
+type FetchProgramming = (url: string, config: {
     body?: string
     headers?: Record<string, string>
     method?: "POST" | "GET" | "PUT" | "DELETE" | "PATCH"
@@ -262,7 +262,7 @@ type PollyFetch = (url: string, config: {
         body: string
         headers: Record<string, string>
     }) => ProgrammingLanguage
-}) => void
+}) => ProgrammingLanguage
 
 type UnderscoreProgramming = {  
     toLowerCase: (input : string) => string,
@@ -391,4 +391,10 @@ type Root = {
             }
         }
     }
+}
+
+type RecursivePartial<T> = {
+    [Key in keyof T]?: T[Key] extends Array<infer U> ? Array<RecursivePartial<U>> : 
+        T[Key] extends object ? RecursivePartial<T[Key]> :
+        T[Key]
 }

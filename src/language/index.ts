@@ -164,7 +164,7 @@ export const code = <T = unknown>(callback: (scope: {
 	setTimeout: PollyTimeout,
 	JSON: PollyJSON
 	_: UnderscoreProgramming
-	fetch: PollyFetch
+	fetch: FetchProgramming
 } & T) => unknown, dependencies: Set<string>, scope?: T): ProgrammingLanguage => {
 	return useCode(callback(
 		proxy({
