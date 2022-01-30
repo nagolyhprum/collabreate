@@ -1,10 +1,43 @@
-import { Body } from "../shared"
-import { adapters, background, border, button, column, grow, id, input, MATCH, observe, onClick, onInit, onInput, onSelect, option, padding, position, recursive, row, scrollable, select, stack, text, value, WRAP } from "../../components"
-import { add, and, block, condition, declare, eq, not, result, set, symbol } from "../../../language"
-import CreateFolder from '../create_folder.svg'
-import CreateFile from '../create_file.svg'
+import { add, and, block, condition, declare, eq, not, result, set, symbol } from "../../language";
+import {
+    text,
+    background,
+    MATCH,
+    row,
+    WRAP,
+    column,
+    grow,
+    padding,
+    id,
+    observe,
+    button,
+    onClick,
+    border,
+    adapters,
+    recursive,
+    stack,
+    position,
+    input,
+    onInput,
+    select,
+    onSelect,
+    option,
+    onInit,
+    scrollable
+} from "../components";
 
-import { File } from '@prisma/client'
+import { File } from "@prisma/client"
+
+const Header = row<AdminState, AdminState>(MATCH, WRAP, [
+    background("red"),
+    row(0, WRAP, [
+        grow(true),
+        text(WRAP, WRAP, [
+            padding(16),
+            "Collabreate"
+        ]),
+    ])
+]);
 
 export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
     text(WRAP, WRAP, [
@@ -221,14 +254,6 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
         }))))))
     ])
 ])
-
-export const Components = (dependencies : Dependencies) => {
-    const name = "Components"
-    dependencies.add("admin:main", Body({
-        name,
-        content : Root
-    }))
-}
 
 export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     id("rename_modal"),
@@ -490,7 +515,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-export const Root = row<AdminState, AdminState>(MATCH, MATCH, [
+export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
     onInit(({
         fetch,
         global,
@@ -638,4 +663,15 @@ export const Root = row<AdminState, AdminState>(MATCH, MATCH, [
     RenameModal,
     RemoveModal,
     MoveModal,
+])
+
+const Main = row<AdminState, AdminState>(MATCH, 0, [
+    grow(true),
+    background("blue"),
+    Editor
+]);
+
+export const Admin = column<AdminState, AdminState>(MATCH, MATCH, [
+    Header,
+    Main,
 ])

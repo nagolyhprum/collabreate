@@ -1,6 +1,6 @@
 import { File } from '@prisma/client'
-import { defaultAdminState } from '../../../server/state'
-import { test } from '../../components'
+import { defaultAdminState } from '../../server/state'
+import { test } from '../components'
 import { RenameModal, FileComponent } from './'
 
 describe("Components", () => {

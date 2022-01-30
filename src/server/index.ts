@@ -220,7 +220,6 @@ ${js}
     </body>
 </html>`
 
-export { Components } from '../client/modules/Components'
 export { WebSockets } from '../client/modules/WebSockets'
 export { Database } from '../client/modules/Database'
 
@@ -250,7 +249,7 @@ export default (modules : Module[]) => {
         const {
             html,
             js
-        } = render(Admin(dependencies))({
+        } = render(Admin)({
             parent : {
                 width : MATCH,
                 height : MATCH,

@@ -1,6 +1,5 @@
 const {
     default : collabreate,
-    Components,
     WebSockets,
     Database
 } = require("../dist/index.js");
@@ -14,7 +13,6 @@ const server = http.createServer(app)
 app.use(collabreate([
     WebSockets(server),
     Database,
-    Components,
 ]))
 
 app.use((err, req, res, next) => {
