@@ -144,8 +144,21 @@ export const option = <Global extends GlobalState, Local>(
 
 export const background = setProperty("background");
 export const grow = setProperty("grow");
-export const id = setProperty("id");
 export const value = setProperty("value");
+
+const ids : Record<string, boolean> = {}
+export const id = <Global extends GlobalState, Local>(id : string) : ComponentFromConfig<Global, Local> => {
+    if(ids[id]) {
+        console.warn("ids must be globally unique", id)
+    }
+    ids[id] = true;
+    return ({
+        parent
+    }) => {
+        parent.id = id
+        return parent;
+    };
+}
 
 // EVENTS
 

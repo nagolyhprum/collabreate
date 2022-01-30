@@ -1,6 +1,7 @@
 import { File } from '@prisma/client'
 import { defaultAdminState } from '../../server/state'
-import { test } from '../components'
+import { test, WRAP } from '../components'
+import { render } from '../render/html'
 import { 
     RenameModal, 
     FileComponent, 
@@ -382,9 +383,17 @@ describe("Components", () => {
         })
     })
     describe("Editor", () => {
-        it("works!", () => {
+        it("renders", () => {
             const global = defaultAdminState()
-            const document = test(Editor, global, global)
+            expect(render(Editor)({
+                global,
+                local : global,
+                parent : {
+                    height : WRAP,
+                    width : WRAP,
+                    name : "root"
+                }
+            })).toMatchSnapshot()
         })
     })
 })

@@ -485,6 +485,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                     label : string
                     value : string
                 }>([
+                    id("standard_select_option"),
                     observe(({
                         event,
                         local
@@ -533,6 +534,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
 ])
 
 export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
+    id("editor_root"),
     onInit(({
         fetch,
         global,
@@ -576,6 +578,7 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
             padding(16),
             row(MATCH, WRAP, [
                 text(WRAP, WRAP, [
+                    id("project_name"),
                     observe(({
                         global,
                         event
@@ -585,6 +588,7 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
                     ))
                 ]),
                 text(WRAP, WRAP, [
+                    id("branch_name"),
                     observe(({
                         global,
                         event
@@ -638,6 +642,7 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
                 ]),
             ]),
             column(MATCH, WRAP, [
+                id("root_folder_file"),
                 border({
                     left : [1, "solid", "black"]
                 }),
