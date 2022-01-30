@@ -232,16 +232,18 @@ export const test = <Global extends GlobalState, Local>(
             event?: any
         ) {
             const component = this.id(id);
-            (component?.[name] ?? []).forEach(callback => {
-                const generated = code(callback as any, new Set([]))
-                execute(generated, {
-                    event,
-                    global,
-                    index : -1,
-                    local,
-                    ...mocks
+            if(component?.enabled !== false) {
+                (component?.[name] ?? []).forEach(callback => {
+                    const generated = code(callback as any, new Set([]))
+                    execute(generated, {
+                        event,
+                        global,
+                        index : -1,
+                        local,
+                        ...mocks
+                    })
                 })
-            })
+            }
             update()
         },
         input(id : string, event : string) {

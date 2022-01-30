@@ -1,7 +1,7 @@
 import { File } from '@prisma/client'
 import { defaultAdminState } from '../../server/state'
 import { test } from '../components'
-import { RenameModal, FileComponent, FolderComponent } from './'
+import { RenameModal, FileComponent, FolderComponent, RemoveModal, MoveModal } from './'
 
 describe("Components", () => {
     describe("RenameModal", () => {
@@ -251,6 +251,75 @@ describe("Components", () => {
                 })
             })
             expect(document.id("folder_component_children")?.visible).toBe(true)
+        })
+    })
+    describe("RemoveModal", () => {
+        it("save enabled is properly tracked", () => {
+            const global = defaultAdminState({
+                modal : {
+                    remove : {
+                        id : 1,
+                        input : "",
+                        name : "test"
+                    }
+                }
+            })
+            const document = test(RemoveModal, global, global)
+            expect(document.id("remove_modal_name_input")?.placeholder).toBe("test")
+            // it gets disabled
+            document.input("remove_modal_name_input", "")
+            expect(document.id("remove_modal_save_button")?.enabled).toBe(false)
+            // it stays disabled
+            document.input("remove_modal_name_input", "te")
+            expect(document.id("remove_modal_save_button")?.enabled).toBe(false)
+            // it gets enabled
+            document.input("remove_modal_name_input", "test")
+            expect(document.id("remove_modal_save_button")?.enabled).toBe(true)
+        })
+        it("can open and close", () => {
+            const global = defaultAdminState({
+                modal : {
+                    remove : {
+                        id : 1,
+                        input : "",
+                        name : "test"
+                    }
+                }
+            })
+            const document = test(RemoveModal, global, global)
+            expect(document.id("remove_modal")?.visible).toBe(true)
+            document.click("remove_modal_cancel_button")
+            expect(document.id("remove_modal")?.visible).toBe(false)
+        })
+        it("can remove a folder / file", () => {
+            const global = defaultAdminState({
+                modal : {
+                    remove : {
+                        id : 1,
+                        input : "test",
+                        name : "test"
+                    }
+                }
+            })
+            const fetch = jest.fn();
+            const document = test(RemoveModal, global, global, {
+                fetch
+            })
+            // make sure it observes properly
+            expect(document.id("remove_modal")?.visible).toBe(true)
+            // save it
+            document.click("remove_modal_save_button")
+            expect(fetch).toBeCalledWith("/api/file", {
+                method : "DELETE",
+                headers : {
+                    "Content-Type" : "application/json; charset=utf-8"
+                },
+                body : JSON.stringify({
+                    id : 1
+                })
+            })
+            // it should close now
+            expect(document.id("remove_modal")?.visible).toBe(false)
         })
     })
 })

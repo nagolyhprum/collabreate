@@ -345,7 +345,8 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+export const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
+    id("remove_modal"),
     observe(({
         event,
         global
@@ -363,11 +364,10 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             top : .5
         }),
         text(WRAP, WRAP, [
-            observe(({
-                event
-            }) => set(event.text, "Please confirm the name of the file you would like to remove"))
+            "Please confirm the name of the file you would like to remove"
         ]),
         input(MATCH, WRAP, [
+            id("remove_modal_name_input"),
             observe(({
                 event,
                 global
@@ -383,6 +383,7 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
         ]),
         row(MATCH, WRAP, [
             button(WRAP, WRAP, [
+                id("remove_modal_cancel_button"),
                 onClick(({
                     global
                 }) => set(global.modal.remove.id, -1)),
@@ -391,6 +392,7 @@ const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 ])
             ]),
             button(WRAP, WRAP, [
+                id("remove_modal_save_button"),
                 observe(({
                     event,
                     global
