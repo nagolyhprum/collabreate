@@ -116,7 +116,7 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     text?: string
     background?: string
     grow?: boolean
-    adapter?: Adapter<Global>
+    adapters?: Adapter<Global>
     data?: Array<Record<string, unknown> & {
         adapter : string
     }>

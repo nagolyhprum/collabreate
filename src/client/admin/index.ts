@@ -105,16 +105,18 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
     padding([16, 16, 0, 16]),
     row(MATCH, WRAP, [
         button(WRAP, WRAP, [
+            id("folder_component_expand_collapse_button"),
             onClick(({
                 local,
                 global
-            }) => set(symbol(global.ui, local.id), not(symbol(global.ui, local.id)))),
+            }) => set(symbol(global.ui, local.uiId), not(symbol(global.ui, local.uiId)))),
             text(WRAP, WRAP, [
+                id("folder_component_expand_collapse_text"),
                 observe(({
                     event,
                     local,
                     global
-                }) => condition(symbol(global.ui, local.id), 
+                }) => condition(symbol(global.ui, local.uiId), 
                     set(event.text, "-")
                 ).otherwise(
                     set(event.text, "+")                    
@@ -122,12 +124,14 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
             ])
         ]),
         text(WRAP, WRAP, [
+            id("folder_component_name"),
             observe(({
                 local,
                 event
             }) => set(event.text, local.name)),
         ]),
         button(WRAP, WRAP, [
+            id("folder_component_rename_button"),
             text(WRAP, WRAP, [
                 "Rename"
             ]),
@@ -144,6 +148,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
             ))
         ]),
         button(WRAP, WRAP, [
+            id("folder_component_move_button"),
             text(WRAP, WRAP, [
                 "Move"
             ]),
@@ -160,6 +165,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
             ))
         ]),
         button(WRAP, WRAP, [
+            id("folder_component_remove_button"),
             text(WRAP, WRAP, [
                 "Remove"
             ]),
@@ -176,6 +182,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
             ))
         ]),
         button(WRAP, WRAP, [
+            id("folder_component_add_file_button"),
             text(WRAP, WRAP, [
                 "Add File"
             ]),
@@ -185,7 +192,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
                 JSON,
                 local
             }) => block([
-                set(symbol(global.ui, local.id), true),
+                set(symbol(global.ui, local.uiId), true),
                 fetch("/api/file", {
                     method : "POST",
                     headers : {
@@ -200,6 +207,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
             ])),
         ]),
         button(WRAP, WRAP, [
+            id("folder_component_add_folder_button"),
             text(WRAP, WRAP, [
                 "Add Folder"
             ]),
@@ -209,6 +217,7 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
                 JSON,
                 local
             }) => block([
+                set(symbol(global.ui, local.uiId), true),
                 fetch("/api/file", {
                     method : "POST",
                     headers : {
@@ -224,11 +233,12 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
         ]),
     ]),
     column(MATCH, WRAP, [
+        id("folder_component_children"),
         observe(({
             event,
             local,
             global
-        }) => set(event.visible, symbol(global.ui, local.id))),
+        }) => set(event.visible, symbol(global.ui, local.uiId))),
         border({
             left : [1, "solid", "black"]
         }),
@@ -577,16 +587,15 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
                     ))
                 ]),
                 button(WRAP, WRAP, [
+                    id("add_file_button"),
                     text(WRAP, WRAP, [
                         "Add File"
                     ]),
                     onClick(({
                         global,
-                        _,
                         fetch,
                         JSON
-                    }) => block([
-                        fetch("/api/file", {
+                    }) => fetch("/api/file", {
                             method : "POST",
                             headers : {
                                 "Content-Type" : "application/json; charset=utf-8"
@@ -597,9 +606,10 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
                                 parentId : null,
                             })
                         })
-                    ])),
+                    ),
                 ]),
                 button(WRAP, WRAP, [
+                    id("add_folder_button"),
                     text(WRAP, WRAP, [
                         "Add Folder"
                     ]),
@@ -607,19 +617,17 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
                         global,
                         fetch,
                         JSON
-                    }) => block([
-                        fetch("/api/file", {
-                            method : "POST",
-                            headers : {
-                                "Content-Type" : "application/json; charset=utf-8"
-                            },
-                            body : JSON.stringify({
-                                branchId : global.branch.id,
-                                isFolder : true,
-                                parentId : null,
-                            })
+                    }) => fetch("/api/file", {
+                        method : "POST",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body : JSON.stringify({
+                            branchId : global.branch.id,
+                            isFolder : true,
+                            parentId : null,
                         })
-                    ])),
+                    })),
                 ]),
             ]),
             column(MATCH, WRAP, [

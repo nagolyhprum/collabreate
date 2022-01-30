@@ -159,7 +159,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "onSelect":
         case "children":
         case "text":
-        case "adapter":
+        case "adapters":
         case "data":
         case "focus":
             // DO NOTHING
@@ -196,8 +196,8 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
                 output
             }))
             return;
-        case "adapter": {
-            const adapter = value as Component<Global, Local>["adapter"]
+        case "adapters": {
+            const adapter = value as Component<Global, Local>["adapters"]
             const data = component.data
             if(adapter) {
                 for(const index in adapter) {

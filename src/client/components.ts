@@ -5,24 +5,6 @@ export const WRAP = -2;
 
 export const generateId = () => `_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`
 
-const validate = <Global extends GlobalState, Local>(component : Component<Global, Local>) => {
-    const count = [component.text, component.children].reduce((count, value) => {
-        return count + (value ? 1 : 0)
-    }, 0)
-
-    if(count > 1) {
-        console.warn("a single component should not have two children types")
-    }
-
-    // if(component.name !== "text" && component.text) {
-    //     console.warn("should only have text in text components")
-    // }
-
-    // if(component.name === "text" && (!component.text)) {
-    //     console.warn("all text fields should have their text set")
-    // }
-}
-
 const tag = (name : Tag) => <Global extends GlobalState, Local>(
     width : number,
     height : number,
@@ -38,8 +20,6 @@ const tag = (name : Tag) => <Global extends GlobalState, Local>(
     }, props, config);
     parent.children = parent.children || [];
     parent.children.push(component);
-    validate(parent);
-    validate(component);
     return parent
 }
 
@@ -176,12 +156,12 @@ export const onInput = event("onInput")
 export const onSelect = event("onSelect")
 
 export const adapters = <Global extends GlobalState, Local>(
-    adapter : Adapter<Global>
+    adapters : Adapter<Global>
 ) : ComponentFromConfig<Global, Local> => {
     const id = generateId()
     return (config) => {
         config.parent.id = config.parent.id || id
-        config.parent.adapter = adapter;
+        config.parent.adapters = adapters;
         return config.parent;
     }
 }
@@ -221,6 +201,28 @@ export const test = <Global extends GlobalState, Local>(
             })
         });
         (document.children ?? []).forEach(update);
+        validate(document);
+    }
+    const validate = (component : Component<Global, Local>) => {
+        const count = [
+            component.text, 
+            component.children, 
+            component.adapters
+        ].reduce((count, value) => {
+            return count + (value ? 1 : 0)
+        }, 0)
+
+        if(count > 1) {
+            console.warn("a single component should not have two children types")
+        }
+
+        if(component.name !== "text" && typeof component.text === "string") {
+            console.warn("should only have text in text components")
+        }
+
+        if(component.name === "text" && typeof component.text !== "string") {
+            console.warn("all text fields should have their text set")
+        }
     }
     update()
     return {
