@@ -1,19 +1,17 @@
 import { File } from '@prisma/client'
 import { defaultAdminState } from '../../server/state'
-import { test, WRAP } from '../components'
-import { render } from '../render/html'
+import { test } from '../components'
 import { 
     RenameModal, 
     FileComponent, 
     FolderComponent, 
     RemoveModal, 
-    MoveModal,
-    Editor
+    MoveModal
 } from './'
 
 describe("Components", () => {
     describe("RenameModal", () => {
-        it("save enabled is properly tracked", () => {
+        it("requires a name", () => {
             const global = defaultAdminState()
             const document = test(RenameModal, global, global)
             // it gets enabled
@@ -22,6 +20,37 @@ describe("Components", () => {
             // it gets disabled
             document.input("rename_modal_name_input", "")
             expect(document.id("rename_modal_save_button")?.enabled).toBe(false)
+        })
+        it("requires a unique name", () => {
+            const global = defaultAdminState({
+                modal : {
+                    rename : {
+                        id : 1,                        
+                    }
+                },
+                files : [{
+                    branchId : "",
+                    id : -1,
+                    isFolder : false,
+                    name : "a",
+                    parentId : -1,
+                    uiId : ""
+                }, {
+                    branchId : "",
+                    id : -1,
+                    isFolder : true,
+                    name : "b",
+                    parentId : -1,
+                    uiId : ""
+                }]
+            })
+            const document = test(RenameModal, global, global)
+            document.input("rename_modal_name_input", "a")
+            expect(document.id("rename_modal_save_button")?.enabled).toBe(false)
+            document.input("rename_modal_name_input", "b")
+            expect(document.id("rename_modal_save_button")?.enabled).toBe(false)
+            document.input("rename_modal_name_input", "c")
+            expect(document.id("rename_modal_save_button")?.enabled).toBe(true)
         })
         it("can open and close", () => {
             const global = defaultAdminState({

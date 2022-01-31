@@ -47,6 +47,14 @@ var socket = (function () {
     };
 })();
 var _ = {
+    reduce : function(list, callback, start) {
+        return list.reduce(function(total, item) {
+            return callback({
+                total : total,
+                item : item
+            })
+        }, start);
+    },
     upsert : function(list, upsert) {
         const item = list.find(function(item) {
             return (item.id && upsert.id && item.id === upsert.id) || (item.key && upsert.key && item.key === upsert.key)

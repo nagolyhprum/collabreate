@@ -1,4 +1,4 @@
-import { add, and, block, condition, declare, eq, not, result, set, symbol } from "../../language";
+import { add, and, block, condition, declare, eq, not, or, result, set, symbol } from "../../language";
 import {
     text,
     background,
@@ -318,8 +318,15 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 id("rename_modal_save_button"),
                 observe(({
                     event,
-                    global
-                }) => set(event.enabled, not(eq(global.modal.rename.input, "")))),
+                    global,
+                    _
+                }) => set(event.enabled, and(
+                    not(eq(global.modal.rename.input, "")),
+                    _.reduce(global.files, ({
+                        total,
+                        item
+                    }) => result(and(total, not(eq(global.modal.rename.input, item.name)))), true)
+                ))),
                 onClick(({
                     global,
                     fetch,
