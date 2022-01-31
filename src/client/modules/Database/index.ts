@@ -86,7 +86,6 @@ export const Database = (dependencies : IDependencies) => {
             where : {
                 isFolder : req.body.isFolder,
                 branchId : req.body.branchId,
-                parentId : req.body.parentId,
             }
         })
         const file = await prisma.file.create({
