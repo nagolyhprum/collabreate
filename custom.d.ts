@@ -80,6 +80,7 @@ type JSONProgramming = {
 type ComponentEvents<Global extends GlobalState, Local> = {
     observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => ProgrammingLanguage>
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onEnter?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInit?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInput?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>
     onSelect?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>

@@ -207,6 +207,13 @@ function bind(root, local) {
                     callback(local.value, local.index/*,event*/);
                     update();
                 };
+            } else if(event === "onEnter") {
+                component.onkeypress = function(e) {
+                    if(e.which === 13) {
+                        callback(local.value, local.index);
+                        update();
+                    }
+                };
             } else if(event === "observe") {
                 var wrapped = Component(component);
                 callback(local.value, local.index, wrapped)

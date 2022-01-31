@@ -164,6 +164,7 @@ export const id = <Global extends GlobalState, Local>(id : string) : ComponentFr
 
 export const observe = event("observe");
 export const onClick = event("onClick")
+export const onEnter = event("onEnter")
 export const onInit = event("onInit")
 export const onInput = event("onInput")
 export const onSelect = event("onSelect")
@@ -272,6 +273,11 @@ export const test = <Global extends GlobalState, Local>(
         return false
     }
     const api = {
+        enter(id : string) {
+            if(triggerById(id, "onEnter")) {
+                update()
+            }
+        },
         input(id : string, event : string) {
             if(triggerById(id, "onInput", event)) {
                 update()

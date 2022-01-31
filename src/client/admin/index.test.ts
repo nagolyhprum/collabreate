@@ -291,6 +291,24 @@ describe("Components", () => {
         })
     })
     describe("RemoveModal", () => {
+        it("allows enter input", () => {
+            const global = defaultAdminState({
+                modal : {
+                    remove : {
+                        id : 1,
+                        input : "",
+                        name : "test"
+                    }
+                }
+            })
+            const document = test(RemoveModal, global, global)
+            expect(document.id("remove_modal")?.visible).toBe(true)
+            document.enter("remove_modal_name_input")
+            expect(document.id("remove_modal")?.visible).toBe(true)
+            document.input("remove_modal_name_input", "test")
+            document.enter("remove_modal_name_input")
+            expect(document.id("remove_modal")?.visible).toBe(false)
+        })
         it("save enabled is properly tracked", () => {
             const global = defaultAdminState({
                 modal : {

@@ -154,6 +154,7 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
             return props;
         case "onInit":
         case "onClick":
+        case "onEnter":
         case "onInput":
         case "observe":
         case "onSelect":
@@ -255,6 +256,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
         case "onInit":
         case "observe":
         case "onInput":
+        case "onEnter":
         case "onSelect":
         case "onClick": {
             const id = `${name}:${component.id}`

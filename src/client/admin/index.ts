@@ -23,7 +23,8 @@ import {
     onSelect,
     option,
     onInit,
-    scrollable
+    scrollable,
+    onEnter
 } from "../components";
 
 import { File } from "@prisma/client"
@@ -386,7 +387,25 @@ export const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             onInput(({
                 global,
                 event
-            }) => set(global.modal.remove.input, event))
+            }) => set(global.modal.remove.input, event)),
+            onEnter(({
+                global,
+                fetch
+            }) => condition(
+                eq(global.modal.remove.input, global.modal.remove.name), 
+                block([                    
+                    fetch("/api/file", {
+                        method : "DELETE",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body : JSON.stringify({
+                            id : global.modal.remove.id
+                        })
+                    }),
+                    set(global.modal.remove.id, -1),
+                ])
+            ))
         ]),
         row(MATCH, WRAP, [
             button(WRAP, WRAP, [
