@@ -20,6 +20,8 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!')
 })
 
-server.listen(process.env.PORT || 80, () => {
-    console.log("listening on port 80");
+const port = process.env.PORT || 80
+
+server.listen(port, () => {
+    console.log("listening on port " + port);
 });
