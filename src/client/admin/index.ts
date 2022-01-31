@@ -518,7 +518,8 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 onClick(({
                     global,
                     fetch,
-                    JSON
+                    JSON,
+                    _
                 }) => block([
                     fetch("/api/file", {
                         method : "PATCH",
@@ -530,6 +531,15 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                             parentId : global.modal.move.parentId
                         })
                     }),
+                    set(symbol(global.ui, _.reduce(global.files, ({
+                        total,
+                        item
+                    }) => condition(
+                        eq(item.id, global.modal.move.parentId), 
+                        result(item.uiId)
+                    ).otherwise(
+                        result(total)
+                    ), "")), true),
                     set(global.modal.move.id, -1),
                 ])),
                 text(WRAP, WRAP, [

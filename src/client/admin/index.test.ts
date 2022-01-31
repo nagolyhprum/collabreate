@@ -384,9 +384,17 @@ describe("Components", () => {
             document.select("move_modal_parent_select", "1")
             expect(global.modal.move.parentId).toBe(1)
         })
-        it("can save", () => {
+        it("can save, which closes modal and expands folder", () => {
             const fetch = jest.fn()
             const global = defaultAdminState({
+                files : [{
+                    id : 2,
+                    branchId : "",
+                    isFolder : true,
+                    name : "name",
+                    parentId : null,
+                    uiId : "uiId"
+                }],
                 modal : {
                     move : {
                         id : 1,
@@ -397,6 +405,7 @@ describe("Components", () => {
             const document = test(MoveModal, global, global, {
                 fetch
             })
+            expect(global.ui.uiId).toBeFalsy()
             document.click("move_modal_save_button")
             expect(fetch).toBeCalledWith("/api/file", {
                 method : "PATCH",
@@ -408,7 +417,7 @@ describe("Components", () => {
                     parentId : 2
                 })
             })
-
+            expect(global.ui.uiId).toBe(true)
         })
     })
 })
