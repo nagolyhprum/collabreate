@@ -382,18 +382,4 @@ describe("Components", () => {
 
         })
     })
-    describe("Editor", () => {
-        it("renders", () => {
-            const global = defaultAdminState()
-            expect(render(Editor)({
-                global,
-                local : global,
-                parent : {
-                    height : WRAP,
-                    width : WRAP,
-                    name : "root"
-                }
-            })).toMatchSnapshot()
-        })
-    })
 })

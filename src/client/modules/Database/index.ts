@@ -1,12 +1,10 @@
 import { Router } from "express";
 import crypto from "crypto";
 
-import { PrismaClient } from '@prisma/client'
+import prisma from './client'
 import { Socket, Server } from "socket.io";
 
-const prisma = new PrismaClient()
-
-export const Database = (dependencies : Dependencies) => {
+export const Database = (dependencies : IDependencies) => {
     dependencies.set("admin:database", prisma);
     const router = dependencies.get("router") as Router;
     router.use((req, res, next) => {
@@ -78,9 +76,13 @@ export const Database = (dependencies : Dependencies) => {
             subdomain
         } = getMains(req.header("host"))
         const {
-            _count : files
+            _count : {
+                _all : files
+            }
         } = await prisma.file.aggregate({
-            _count : true,
+            _count : {
+                _all : true
+            },
             where : {
                 isFolder : req.body.isFolder,
                 branchId : req.body.branchId,

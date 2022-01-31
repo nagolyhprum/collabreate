@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Database default can get an existing project and branch 1`] = `
+Object {
+  "branch": Object {
+    "id": "",
+    "previousBranchId": "",
+    "projectId": "",
+  },
+  "files": Array [],
+  "project": Object {
+    "id": "",
+    "latestBranchId": "",
+  },
+}
+`;

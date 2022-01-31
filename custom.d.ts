@@ -155,15 +155,14 @@ interface Database {
 
 type ModuleName = "admin:database" | "socket.io" | "router" | "admin:script"
 
-type Dependencies = {
-    _map : Record<string, any[]>
+interface IDependencies {
     set : (name : ModuleName, value : any) => void
     get : (name : ModuleName) => any
     add : (name : ModuleName, value : any) => void
     list : (name : ModuleName) => any[]
 }
 
-type Module = (modules : Dependencies) => void
+type Module = (modules : IDependencies) => void
 
 type ProgrammingLanguage = {
     _name: "fallback",

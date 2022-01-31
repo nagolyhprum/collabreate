@@ -2,6 +2,7 @@ import express, { Router } from "express"
 import { Admin } from "../client/admin";
 import { MATCH } from '../client/components'
 import { render } from "../client/render/html";
+import { Dependencies } from "./dependencies";
 import { defaultAdminState } from "./state";
 
 const document = ({
@@ -226,22 +227,7 @@ export { Database } from '../client/modules/Database'
 export default (modules : Module[]) => {
     const router = Router();
     router.use(express.json({}))
-    const dependencies : Dependencies = {
-        _map : {},
-        set(name, value) {
-            this._map[name] = value;
-        },
-        get(name) {
-            return this._map[name]
-        },
-        add(name, value) {
-            this._map[name] = this._map[name] || [];
-            this._map[name].push(value);
-        },
-        list(name) {
-            return this._map[name] || []
-        }
-    }
+    const dependencies = new Dependencies();
     dependencies.set("router", router);
     modules.map(it => it(dependencies))
     router.get("/admin", async (_, res) => {
@@ -259,7 +245,7 @@ export default (modules : Module[]) => {
             local : state
         })
         res.status(200).header({
-            "Content-type" : "text/html"
+            "Content-type" : "text/html; charset=utf-8"
         }).send(document({
             scripts : dependencies.list("admin:script"),
             html : html.join(""),
