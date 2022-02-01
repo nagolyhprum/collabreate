@@ -45,6 +45,7 @@ type AdminState = GlobalState & {
         move : {
             id : number
             name : string
+            select : number | null
             parentId : number | null
         }
     }

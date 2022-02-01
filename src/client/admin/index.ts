@@ -79,7 +79,8 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
             {
                 id : local.id,
                 name : local.name,
-                parentId : local.parentId
+                parentId : local.parentId,
+                select : local.parentId
             }
         ))
     ]),
@@ -161,7 +162,8 @@ export const FolderComponent : ComponentFromConfig<AdminState, File> = column<Ad
                 {
                     id : local.id,
                     name : local.name,
-                    parentId : local.parentId
+                    parentId : local.parentId,
+                    select : local.parentId,
                 }
             ))
         ]),
@@ -478,7 +480,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 event,
                 global,
                 JSON
-            }) => set(global.modal.move.parentId, JSON.parse(event))),
+            }) => set(global.modal.move.select, JSON.parse(event))),
             observe(({
                 event,
                 global,
@@ -504,7 +506,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                         })
                     )
                 )),
-                set(event.value, global.modal.move.parentId)
+                set(event.value, global.modal.move.select)
             ])),
             adapters({
                 option : option<AdminState, {
@@ -533,6 +535,10 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 ])
             ]),
             button(WRAP, WRAP, [
+                observe(({
+                    event,
+                    global
+                }) => set(event.enabled, not(eq(global.modal.move.parentId, global.modal.move.select)))),
                 id("move_modal_save_button"),
                 onClick(({
                     global,
@@ -547,7 +553,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                         },
                         body : JSON.stringify({
                             id : global.modal.move.id,
-                            parentId : global.modal.move.parentId
+                            parentId : global.modal.move.select
                         })
                     }),
                     set(symbol(global.ui, _.reduce(global.files, ({

@@ -143,7 +143,8 @@ describe("Components", () => {
             expect(global.modal.move).toEqual({
                 id : 1,
                 name : "test",
-                parentId : 2
+                parentId : 2,
+                select : 2                
             })
         })
         it("can open remove", () => {
@@ -206,7 +207,8 @@ describe("Components", () => {
             expect(global.modal.move).toEqual({
                 id : 1,
                 name : "test",
-                parentId : 2
+                parentId : 2,
+                select: 2
             })
         })
         it("can open remove", () => {
@@ -398,9 +400,9 @@ describe("Components", () => {
             const global = defaultAdminState()
             const document = test(MoveModal, global, global)
             document.select("move_modal_parent_select", "null")
-            expect(global.modal.move.parentId).toBe(null)
+            expect(global.modal.move.select).toBe(null)
             document.select("move_modal_parent_select", "1")
-            expect(global.modal.move.parentId).toBe(1)
+            expect(global.modal.move.select).toBe(1)
         })
         it("can save, which closes modal and expands folder", () => {
             const fetch = jest.fn()
@@ -416,13 +418,17 @@ describe("Components", () => {
                 modal : {
                     move : {
                         id : 1,
-                        parentId : 2
+                        parentId : 2,
+                        select : 2,
                     }
                 }
             })
             const document = test(MoveModal, global, global, {
                 fetch
             })
+            expect(document.id("move_modal_save_button")?.enabled).toBe(false)
+            document.select("move_modal_parent_select", "3")
+            expect(document.id("move_modal_save_button")?.enabled).toBe(true)
             expect(global.ui.uiId).toBeFalsy()
             document.click("move_modal_save_button")
             expect(fetch).toBeCalledWith("/api/file", {
@@ -432,7 +438,7 @@ describe("Components", () => {
                 },
                 body : JSON.stringify({
                     id : 1,
-                    parentId : 2
+                    parentId : 3
                 })
             })
             expect(global.ui.uiId).toBe(true)
