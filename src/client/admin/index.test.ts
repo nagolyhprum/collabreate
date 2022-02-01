@@ -433,6 +433,13 @@ describe("Components", () => {
                     isFolder : true,
                     name : "name",
                     parentId : null,
+                    uiId : ""
+                }, {
+                    id : 3,
+                    branchId : "",
+                    isFolder : true,
+                    name : "name",
+                    parentId : null,
                     uiId : "uiId"
                 }],
                 modal : {

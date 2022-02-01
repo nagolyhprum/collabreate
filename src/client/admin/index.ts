@@ -309,7 +309,8 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             onEnter(({
                 global,
                 fetch,
-                _
+                _,
+                JSON
             }) => condition(
                 and(
                     not(eq(global.modal.rename.input, "")),
@@ -418,7 +419,8 @@ export const RemoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             }) => set(global.modal.remove.input, event)),
             onEnter(({
                 global,
-                fetch
+                fetch,
+                JSON
             }) => condition(
                 eq(global.modal.remove.input, global.modal.remove.name), 
                 block([                    
@@ -586,7 +588,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                         total,
                         item
                     }) => condition(
-                        eq(item.id, global.modal.move.parentId), 
+                        eq(item.id, global.modal.move.select), 
                         result(item.uiId)
                     ).otherwise(
                         result(total)
