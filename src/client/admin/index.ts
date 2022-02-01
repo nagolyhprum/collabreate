@@ -305,7 +305,33 @@ export const RenameModal = stack<AdminState, AdminState>(MATCH, MATCH, [
             onInput(({
                 global,
                 event
-            }) => set(global.modal.rename.input, event))
+            }) => set(global.modal.rename.input, event)),
+            onEnter(({
+                global,
+                fetch,
+                _
+            }) => condition(
+                and(
+                    not(eq(global.modal.rename.input, "")),
+                    _.reduce(global.files, ({
+                        total,
+                        item
+                    }) => result(and(total, not(eq(global.modal.rename.input, item.name)))), true)
+                ),
+                block([
+                    fetch("/api/file", {
+                        method : "PATCH",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body : JSON.stringify({
+                            id : global.modal.rename.id,
+                            name : global.modal.rename.input
+                        })
+                    }),
+                    set(global.modal.rename.id, -1),
+                ])
+            ))
         ]),
         row(MATCH, WRAP, [
             button(WRAP, WRAP, [

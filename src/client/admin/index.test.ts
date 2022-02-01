@@ -11,6 +11,26 @@ import {
 
 describe("Components", () => {
     describe("RenameModal", () => {
+        it("allows enter input", () => {
+            const global = defaultAdminState({
+                modal : {
+                    rename : {
+                        id : 1,
+                        input : "",
+                        name : "test"
+                    }
+                }
+            })
+            const document = test(RenameModal, global, global)
+            expect(document.id("rename_modal")?.visible).toBe(true)
+            document.enter("rename_modal_name_input")
+            expect(document.id("rename_modal")?.visible).toBe(true)
+            document.input("rename_modal_name_input", "test")
+            expect(document.id("rename_modal")?.visible).toBe(true)
+            document.input("rename_modal_name_input", "not test")
+            document.enter("rename_modal_name_input")
+            expect(document.id("rename_modal")?.visible).toBe(false)
+        })
         it("requires a name", () => {
             const global = defaultAdminState()
             const document = test(RenameModal, global, global)
