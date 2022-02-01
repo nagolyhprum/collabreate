@@ -4,5 +4,9 @@ module.exports = {
   testEnvironment: 'node',
   coverageDirectory: "coverage",
   collectCoverage: true,
-  collectCoverageFrom: ["src/**/*.ts"]
+  collectCoverageFrom: ["src/**/*.ts"],
+  coveragePathIgnorePatterns: [
+      "<rootDir>/src/language/kotlin.ts",
+      "<rootDir>/src/language/swift.ts",
+  ],
 };
