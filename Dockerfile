@@ -7,4 +7,4 @@ RUN npm i
 COPY . .
 RUN npm run prisma -- generate
 RUN chmod 777 ./wait-for-it.sh
-CMD ./wait-for-it.sh database:5432 && npm run dev
+CMD ./wait-for-it.sh database:5432 && npm run prisma -- migrate deploy && npm run dev
