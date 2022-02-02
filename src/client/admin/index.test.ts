@@ -144,7 +144,7 @@ describe("Components", () => {
                 name : "test"
             })
             const document = test(FileComponent, global, local)
-            document.click("file_component_rename_buttom")
+            document.click("file_component_rename_button")
             expect(global.modal.rename).toEqual({
                 id : 1,
                 name : "test",
@@ -159,7 +159,7 @@ describe("Components", () => {
                 parentId : 2
             })
             const document = test(FileComponent, global, local)
-            document.click("file_component_move_buttom")
+            document.click("file_component_move_button")
             expect(global.modal.move).toEqual({
                 id : 1,
                 name : "test",
@@ -174,7 +174,7 @@ describe("Components", () => {
                 name : "test"
             })
             const document = test(FileComponent, global, local)
-            document.click("file_component_remove_buttom")
+            document.click("file_component_remove_button")
             expect(global.modal.remove).toEqual({
                 id : 1,
                 name : "test",

@@ -50,7 +50,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         }) => set(event.text, local.name))
     ]),
     button(WRAP, WRAP, [
-        id("file_component_rename_buttom"),
+        id("file_component_rename_button"),
         text(WRAP, WRAP, [
             "Rename"
         ]),
@@ -67,7 +67,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         ))
     ]),
     button(WRAP, WRAP, [
-        id("file_component_move_buttom"),
+        id("file_component_move_button"),
         text(WRAP, WRAP, [
             "Move"
         ]),
@@ -85,7 +85,7 @@ export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
         ))
     ]),
     button(WRAP, WRAP, [
-        id("file_component_remove_buttom"),
+        id("file_component_remove_button"),
         text(WRAP, WRAP, [
             "Remove"
         ]),

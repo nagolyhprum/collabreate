@@ -19,6 +19,20 @@ export const Database = (dependencies : IDependencies) => {
             }).end()
         }
     })
+    if(process.env.NODE_ENV !== "production") {
+        router.delete("/api", async (_, res) => {
+            try {
+                await prisma.component.deleteMany()
+                await prisma.file.deleteMany()
+                await prisma.branch.deleteMany()
+                await prisma.project.deleteMany()
+                res.status(200).end()
+            } catch(e) {
+                console.log(e);
+                res.status(400).end()
+            }
+        })
+    }
     const getProject = async (projectId : string, branchId : string) => {
         const project = (await prisma.project.findFirst({
             where : {
@@ -63,71 +77,91 @@ export const Database = (dependencies : IDependencies) => {
         }
     }
     router.get("/api/project", async (req, res) => {
-        const { domain, subdomain } = getMains(req.header("host"))
-        res.send(await getProject(domain, subdomain))
+        try {
+            const { domain, subdomain } = getMains(req.header("host"))
+            res.send(await getProject(domain, subdomain))
+        } catch(e) {
+            console.log(e)
+            res.status(400).end()
+        }
     })
     io.on("connect", (socket : Socket) => {
         const { domain, subdomain } = getMains(socket.handshake.headers.host)
         socket.join(`${domain}_${subdomain}`)
     })
     router.post("/api/file", async (req, res) => {
-        const {
-            domain,
-            subdomain
-        } = getMains(req.header("host"))
-        const {
-            _count : {
-                _all : files
-            }
-        } = await prisma.file.aggregate({
-            _count : {
-                _all : true
-            },
-            where : {
-                isFolder : req.body.isFolder,
-                branchId : req.body.branchId,
-            }
-        })
-        const file = await prisma.file.create({
-            data : {
-                isFolder : req.body.isFolder,
-                branchId : req.body.branchId,
-                parentId : req.body.parentId,
-                name : `${req.body.isFolder ? "Folder" : "File"}_${files}`,
-                uiId : crypto.randomBytes(20).toString('hex'),
-            }
-        })
-        io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
-        res.status(200).end()
+        try {
+            const {
+                domain,
+                subdomain
+            } = getMains(req.header("host"))
+            const {
+                _count : {
+                    _all : files
+                }
+            } = await prisma.file.aggregate({
+                _count : {
+                    _all : true
+                },
+                where : {
+                    isFolder : req.body.isFolder,
+                    branchId : req.body.branchId,
+                }
+            })
+            const file = await prisma.file.create({
+                data : {
+                    isFolder : req.body.isFolder,
+                    branchId : req.body.branchId,
+                    parentId : req.body.parentId,
+                    name : `${req.body.isFolder ? "Folder" : "File"}_${files}`,
+                    uiId : crypto.randomBytes(20).toString('hex'),
+                }
+            })
+            io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
+            res.status(200).end()
+        } catch(e) {
+            console.log(e)
+            res.status(400).end()
+        }
     })
     router.patch("/api/file", async (req, res) => {
-        const {
-            domain,
-            subdomain
-        } = getMains(req.header("host"))
-        const file = await prisma.file.update({
-            where : {
-                id : req.body.id
-            },            
-            data : {
-                parentId : req.body.parentId,
-                name : req.body.name
-            }
-        })
-        io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
-        res.status(200).end()
+        try {
+            const {
+                domain,
+                subdomain
+            } = getMains(req.header("host"))
+            const file = await prisma.file.update({
+                where : {
+                    id : req.body.id
+                },            
+                data : {
+                    parentId : req.body.parentId,
+                    name : req.body.name
+                }
+            })
+            io.to(`${domain}_${subdomain}`).emit("file.upsert", file);
+            res.status(200).end()
+        } catch(e) {
+            console.log(e)
+            res.status(400).end()
+        }
     })
     router.delete("/api/file", async (req, res) => {
-        const {
-            domain,
-            subdomain
-        } = getMains(req.header("host"))
-        await prisma.file.delete({
-            where : {
-                id : req.body.id
-            }
-        })
-        io.to(`${domain}_${subdomain}`).emit("file.remove", req.body.id);
-        res.status(200).end()
+        try {
+            const {
+                domain,
+                subdomain
+            } = getMains(req.header("host"))
+            await prisma.file.delete({
+                where : {
+                    id : req.body.id
+                }
+            })
+            io.to(`${domain}_${subdomain}`).emit("file.remove", req.body.id);
+            res.status(200).end()
+        } catch(e) {
+            console.log(e)
+            res.status(400).end()
+        }
     })
 };
