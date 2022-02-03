@@ -1,0 +1,7 @@
+.github
+.nyc_output
+coverage
+cypress
+data
+dist
+node_modules
