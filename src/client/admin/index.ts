@@ -1,4 +1,4 @@
-import { add, and, block, condition, declare, eq, not, or, result, set, symbol } from "../../language";
+import { add, and, block, condition, declare, defined, eq, not, or, result, set, symbol } from "../../language";
 import {
     text,
     background,
@@ -24,10 +24,25 @@ import {
     option,
     onInit,
     scrollable,
-    onEnter
+    onEnter,
+    onDragStart,
+    onDragEnd,
+    onDrop,
+    margin,
+    props
 } from "../components";
 
-import { File } from "@prisma/client"
+import { File, Component as DBComponent, Prisma } from "@prisma/client"
+
+const BoxModel = props<AdminState, DBComponent>([
+    observe(({
+        local,
+        event
+    }) => block([
+        set(event.width, (local.props as Prisma.JsonObject).width),
+        set(event.height, (local.props as Prisma.JsonObject).height),
+    ]))
+])
 
 const Header = row<AdminState, AdminState>(MATCH, WRAP, [
     background("red"),
@@ -41,13 +56,19 @@ const Header = row<AdminState, AdminState>(MATCH, WRAP, [
 ]);
 
 export const FileComponent = row<AdminState, File>(MATCH, WRAP, [
-    text(WRAP, WRAP, [
-        id("file_component_name"),
-        padding([16, 16, 0, 16]),
-        observe(({
-            local,
-            event
-        }) => set(event.text, local.name))
+    button(WRAP, WRAP, [
+        margin([16, 16, 0, 16]),
+        onClick(({
+            global,
+            local
+        }) => set(global.fileId, local.id)),
+        text(WRAP, WRAP, [
+            id("file_component_name"),
+            observe(({
+                local,
+                event
+            }) => set(event.text, local.name))
+        ]),
     ]),
     button(WRAP, WRAP, [
         id("file_component_rename_button"),
@@ -603,6 +624,281 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
+const COMPONENTS = ["input", "button", "text"]
+
+export const RightPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
+    background("yellow"),
+    column(WRAP, WRAP, [
+        ...COMPONENTS.map(component => text<AdminState, AdminState>(WRAP, WRAP, [
+            component,
+            onDragStart(({
+                global
+            }) => set(global.dragging, component)),
+            onDragEnd(({
+                global
+            }) => set(global.dragging, ""))
+        ]))
+    ])
+])
+
+export const LeftPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
+    background("yellow"),
+    column(MATCH, WRAP, [
+        padding(16),
+        row(MATCH, WRAP, [
+            text(WRAP, WRAP, [
+                id("project_name"),
+                observe(({
+                    global,
+                    event
+                }) => set(
+                    event.text,
+                    global.project.id
+                ))
+            ]),
+            text(WRAP, WRAP, [
+                id("branch_name"),
+                observe(({
+                    global,
+                    event
+                }) => set(
+                    event.text,
+                    global.branch.id
+                ))
+            ]),
+            button(WRAP, WRAP, [
+                id("add_file_button"),
+                text(WRAP, WRAP, [
+                    "Add File"
+                ]),
+                onClick(({
+                    global,
+                    fetch,
+                    JSON
+                }) => fetch("/api/file", {
+                        method : "POST",
+                        headers : {
+                            "Content-Type" : "application/json; charset=utf-8"
+                        },
+                        body : JSON.stringify({
+                            branchId : global.branch.id,
+                            isFolder : false,
+                            parentId : null,
+                        })
+                    })
+                ),
+            ]),
+            button(WRAP, WRAP, [
+                id("add_folder_button"),
+                text(WRAP, WRAP, [
+                    "Add Folder"
+                ]),
+                onClick(({
+                    global,
+                    fetch,
+                    JSON
+                }) => fetch("/api/file", {
+                    method : "POST",
+                    headers : {
+                        "Content-Type" : "application/json; charset=utf-8"
+                    },
+                    body : JSON.stringify({
+                        branchId : global.branch.id,
+                        isFolder : true,
+                        parentId : null,
+                    })
+                })),
+            ]),
+        ]),
+        column(MATCH, WRAP, [
+            id("root_folder_file"),
+            border({
+                left : [1, "solid", "black"]
+            }),
+            observe(({
+                event,
+                global,
+                _
+            }) => set(event.data, _.map(_.filter(global.files, ({
+                item
+            }) => result(eq(item.parentId, null))), ({
+                item
+            }) => 
+                condition(item.isFolder, 
+                    result(_.assign<File & {
+                        adapter : string
+                    }>(item, {
+                        adapter : "folder"
+                    }))
+                ).otherwise(
+                    result(_.assign<File & {
+                        adapter : string
+                    }>(item, {
+                        adapter : "file"
+                    }))
+                ),
+            ))),
+            adapters({
+                folder : FolderComponent,
+                file : FileComponent
+            })
+        ]),
+    ]),
+])
+
+const RootDropZone = stack<AdminState, AdminState>(100, 100, [
+    onDrop(({
+        global,
+        _
+    }) => set(global.components, _.concat(
+        global.components,
+        [{
+            branchId : global.branch.id,
+            fileId : global.fileId,
+            parentId : null,
+            id : 0,
+            uiId : "0",
+            props : {
+                type : global.dragging,
+                width : 100,
+                height : 100,
+                text : "test"
+            }
+        }]
+    ))),
+    observe(({
+        event,
+        global,
+        _
+    }) => declare(({
+        root
+    }) => [
+        set(event.visible, and(not(eq(global.fileId, -1)), not(defined(root)))),
+        condition(eq(global.dragging, ""), set(event.background, "blue")).otherwise(
+            set(event.background, "green")
+        )
+    ], {
+        root : _.find(global.components, ({ 
+            item 
+        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null))), null)
+    }))
+])
+
+const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
+    onDrop(({
+        global,
+        _,
+        local
+    }) => set(global.components, _.concat(
+        global.components,
+        [{
+            branchId : global.branch.id,
+            fileId : global.fileId,
+            parentId : local.id,
+            id : 1,
+            uiId : "1",
+            props : {
+                type : global.dragging,
+                width : 100,
+                height : 100,
+                text : "test"
+            }
+        }]
+    ))),
+    observe(({
+        event,
+        global,
+        _,
+        local
+    }) => declare(({
+        root
+    }) => [
+        set(event.visible, and(not(eq(global.fileId, -1)), not(defined(root)))),
+        condition(eq(global.dragging, ""), set(event.background, "blue")).otherwise(
+            set(event.background, "green")
+        )
+    ], {
+        root : _.find(global.components, ({ 
+            item 
+        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id))), null)
+    }))
+])
+
+const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<AdminState, DBComponent>(0, 0, [
+    BoxModel,
+    observe(({
+        event,
+        local,
+        _,
+    }) => set(event.data, [_.assign<DBComponent & {
+        adapter : string
+    }>({}, local, {
+        adapter : (local.props as Prisma.JsonObject).type as string
+    })])),
+    adapters({
+        input : input(MATCH, MATCH, [
+        ]),
+        button : button(MATCH, MATCH, [
+            ComponentDropZone,
+            stack(MATCH, MATCH, [
+                observe(({
+                    _,
+                    event,
+                    global,
+                    local
+                }) => set(event.data, _.map(
+                    _.filter(global.components, ({
+                        item
+                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                    ({
+                        item
+                    }) => result(_.assign<DBComponent | {
+                        adapter : string
+                    }>({}, item, {
+                        adapter : "local"
+                    }))
+                ))),
+                adapters({
+                    local : recursive(() => ComponentManager)
+                })
+            ])
+        ]),
+        text : text(MATCH, MATCH, [
+            observe(({
+                local,
+                event
+            }) => set(event.text, local.props.text))
+        ]),
+    })
+])
+
+export const Preview = column<AdminState, AdminState>(0, MATCH, [
+    grow(true),
+    background("purple"),
+    RootDropZone,
+    stack(WRAP, WRAP, [
+        observe(({
+            _,
+            event,
+            global,
+        }) => set(event.data, _.map(
+            _.filter(global.components, ({
+                item
+            }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null)))),
+            ({
+                item
+            }) => result(_.assign<DBComponent | {
+                adapter : string
+            }>({}, item, {
+                adapter : "local"
+            }))
+        ))),
+        adapters({
+            local : ComponentManager
+        })
+    ])
+])
+
 export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
     id("editor_root"),
     onInit(({
@@ -642,114 +938,9 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
             })
         })
     ])),
-    scrollable(.3, MATCH, [
-        background("yellow"),
-        column(MATCH, WRAP, [
-            padding(16),
-            row(MATCH, WRAP, [
-                text(WRAP, WRAP, [
-                    id("project_name"),
-                    observe(({
-                        global,
-                        event
-                    }) => set(
-                        event.text,
-                        global.project.id
-                    ))
-                ]),
-                text(WRAP, WRAP, [
-                    id("branch_name"),
-                    observe(({
-                        global,
-                        event
-                    }) => set(
-                        event.text,
-                        global.branch.id
-                    ))
-                ]),
-                button(WRAP, WRAP, [
-                    id("add_file_button"),
-                    text(WRAP, WRAP, [
-                        "Add File"
-                    ]),
-                    onClick(({
-                        global,
-                        fetch,
-                        JSON
-                    }) => fetch("/api/file", {
-                            method : "POST",
-                            headers : {
-                                "Content-Type" : "application/json; charset=utf-8"
-                            },
-                            body : JSON.stringify({
-                                branchId : global.branch.id,
-                                isFolder : false,
-                                parentId : null,
-                            })
-                        })
-                    ),
-                ]),
-                button(WRAP, WRAP, [
-                    id("add_folder_button"),
-                    text(WRAP, WRAP, [
-                        "Add Folder"
-                    ]),
-                    onClick(({
-                        global,
-                        fetch,
-                        JSON
-                    }) => fetch("/api/file", {
-                        method : "POST",
-                        headers : {
-                            "Content-Type" : "application/json; charset=utf-8"
-                        },
-                        body : JSON.stringify({
-                            branchId : global.branch.id,
-                            isFolder : true,
-                            parentId : null,
-                        })
-                    })),
-                ]),
-            ]),
-            column(MATCH, WRAP, [
-                id("root_folder_file"),
-                border({
-                    left : [1, "solid", "black"]
-                }),
-                observe(({
-                    event,
-                    global,
-                    _
-                }) => set(event.data, _.map(_.filter(global.files, ({
-                    item
-                }) => result(eq(item.parentId, null))), ({
-                    item
-                }) => 
-                    condition(item.isFolder, 
-                        result(_.assign<File & {
-                            adapter : string
-                        }>(item, {
-                            adapter : "folder"
-                        }))
-                    ).otherwise(
-                        result(_.assign<File & {
-                            adapter : string
-                        }>(item, {
-                            adapter : "file"
-                        }))
-                    ),
-                ))),
-                adapters({
-                    folder : FolderComponent,
-                    file : FileComponent
-                })
-            ]),
-        ]),
-    ]),
-    column(0, MATCH, [
-        grow(true),
-        background("purple")
-    ]),
+    LeftPanel,
+    Preview,
+    RightPanel,
     RenameModal,
     RemoveModal,
     MoveModal,

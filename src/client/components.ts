@@ -168,6 +168,9 @@ export const onEnter = event("onEnter")
 export const onInit = event("onInit")
 export const onInput = event("onInput")
 export const onSelect = event("onSelect")
+export const onDragStart = event("onDragStart")
+export const onDragEnd = event("onDragEnd")
+export const onDrop = event("onDrop")
 
 export const adapters = <Global extends GlobalState, Local>(
     adapters : Adapter<Global>
@@ -304,4 +307,17 @@ export const test = <Global extends GlobalState, Local>(
     init()
     update()
     return api;
+}
+
+export const props = <Global extends GlobalState, Local>(
+    props : Array<string | ComponentFromConfig<Global, Local>>
+) : ComponentFromConfig<Global, Local> => (config) => {
+    props.forEach(prop => {
+        if(typeof prop === "string") {
+            config.parent.text = prop;
+        } else {
+            prop(config)
+        }
+    })
+    return config.parent
 }

@@ -152,6 +152,11 @@ const handleProp = <Global extends GlobalState, Local, Key extends keyof Compone
         case "enabled":
             props.disabled = value === false ? "disabled" : ""
             return props;
+        case "onDragStart":
+            props.draggable = "true";
+            return props;
+        case "onDragEnd":
+        case "onDrop":
         case "onInit":
         case "onClick":
         case "onEnter":
@@ -207,7 +212,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
                         output.cache.add(key)
                         const child = adapter[index]({
                             global : global,
-                            local : local,
+                            local : null,
                             parent : {
                                 height : 0,
                                 width : 0,
@@ -218,7 +223,7 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
                             const adapterOutput = handle({
                                 component : child,
                                 global,
-                                local,
+                                local : null,
                                 output : {
                                     cache : output.cache,
                                     css : output.css,
@@ -254,6 +259,9 @@ const handleChildren = <Global extends GlobalState, Local, Key extends keyof Com
             return;
         }
         case "onInit":
+        case "onDragStart":
+        case "onDragEnd":
+        case "onDrop":
         case "observe":
         case "onInput":
         case "onEnter":
@@ -310,7 +318,7 @@ const handle = <Global extends GlobalState, Local>({
         selfClosing
     } = getTagName(component.name);
 
-    if(component.observe) {
+    if(component.observe && local) {
         component.observe.forEach(callback => {
             const generated = code(callback, new Set([]))
             execute(generated, {

@@ -25,7 +25,14 @@ type GlobalState = {
     }
 }
 
+type ComponentJSON = {
+    width : number
+    height : number
+}
+
 type AdminState = GlobalState & {
+    dragging : string
+    fileId : number
     files : import("@prisma/client").File[]
     components : import("@prisma/client").Component[]
     project : import("@prisma/client").Project
@@ -70,7 +77,7 @@ type EventConfig<Global extends GlobalState, Local, Type> = {
 }
 
 type ConsoleProgramming = {
-    log : (...args : any[]) => void
+    log : (...args : any[]) => ProgrammingLanguage
 }
 
 type JSONProgramming = {
@@ -81,6 +88,9 @@ type JSONProgramming = {
 type ComponentEvents<Global extends GlobalState, Local> = {
     observe?: Array<(event : EventConfig<Global, Local, Component<Global, Local>>) => ProgrammingLanguage>
     onClick?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onDragStart?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onDragEnd?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
+    onDrop?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onEnter?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInit?: Array<(event : EventConfig<Global, Local, null>) => ProgrammingLanguage>
     onInput?: Array<(event : EventConfig<Global, Local, string>) => ProgrammingLanguage>

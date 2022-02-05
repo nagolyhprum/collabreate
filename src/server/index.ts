@@ -1,6 +1,6 @@
 import express, { Router } from "express"
 import { Admin } from "../client/admin";
-import { MATCH } from '../client/components'
+import { MATCH, WRAP } from '../client/components'
 import { render } from "../client/render/html";
 import { Dependencies } from "./dependencies";
 import { defaultAdminState } from "./state";
@@ -18,12 +18,15 @@ const document = ({
         <style>
 html, body {
     display : flex;
+    width : 100%;
+    min-height : 100%;
+}
+html, body, button {
+    background : transparent;
     margin : 0;
     padding : 0;
     border : 0;
     font-size : 16px;
-    width : 100%;
-    min-height : 100%;
 }
 * { 
     box-sizing: border-box;
@@ -90,6 +93,13 @@ var _ = {
     },
     concat : function(a, b) {
         return a.concat(b);
+    },
+    find : function(list, callback, or) {
+        return list.find(function(item) {
+            return callback({
+                item : item
+            });
+        }) || or;
     }
 };
 var fetch = (function(url, config) {
@@ -131,6 +141,21 @@ function setEvent(id, name, callback) {
     events[id] = events[id] || {};
     events[id][name] = callback;
 }
+
+function numberToMeasurement(input) {
+    if(input === null || input === undefined) {
+        return "";
+    }
+    if(0 < input && input < 1) {
+        return (input * 100) + "%";
+    } else if(input === ${WRAP}) {
+        return "auto";
+    } else if(input === ${MATCH}) {
+        return "100%";
+    } else {
+        return input + "px";
+    }
+}
 function Component(component) {
     var cache = {};
     return new Proxy(component, {
@@ -138,6 +163,10 @@ function Component(component) {
             if(cache[key] !== value) {
                 cache[key] = value;
                 switch(key) {
+                    case "width":
+                    case "height":
+                        target.style[key] = numberToMeasurement(value);
+                        return;
                     case "focus":
                         target.focus();
                         target.setSelectionRange(0, target.value.length);
@@ -192,7 +221,31 @@ function bind(root, local) {
         var toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
             var callback = toBind[event];
-            if(event === "onSelect") {
+            if(event === "onDrop") {
+                function prevent(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.cancelBubble = true;
+                    return false;
+                };
+                component.ondragenter = prevent
+                component.ondragleave = prevent
+                component.ondragover = prevent
+                component.ondrop = function() {
+                    callback(local.value, local.index);
+                    update();
+                };
+            } else if(event === "onDragStart") {
+                component.ondragstart = function() {
+                    callback(local.value, local.index);
+                    update();
+                };
+            } else if(event === "onDragEnd") {
+                component.ondragend = function() {
+                    callback(local.value, local.index);
+                    update();
+                };
+            } else if(event === "onSelect") {
                 component.onchange = function() {
                     callback(local.value, local.index, this.value);
                     update();

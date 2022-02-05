@@ -63,4 +63,6 @@ model Component {
     parentId Int?
     parent Component? @relation(fields: [parentId], references: [id], name: "component")
     children Component[] @relation(name : "component")
+
+    props Json
 }

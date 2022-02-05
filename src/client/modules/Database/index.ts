@@ -63,7 +63,8 @@ export const Database = (dependencies : IDependencies) => {
         return {
             project,
             branch,
-            files
+            files,
+            components : []
         }
     }
     const io = dependencies.get("socket.io") as Server

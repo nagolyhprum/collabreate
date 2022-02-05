@@ -1,9 +1,11 @@
 export const defaultAdminState = (
     state: RecursivePartial<AdminState> = {}
-) : AdminState => (<AdminState>{
+) : AdminState => ({
+    dragging : "",
+    fileId : -1,
     selectedDirectory : "components",
-    files : [],
-    components : [],
+    files : [] as any,
+    components : [] as any,
     ...state,
     ui : {
         ...state.ui
@@ -36,7 +38,7 @@ export const defaultAdminState = (
             id : -1,
             name : "",
             parentId : null,
-            ...state.modal?.move
+            ...state.modal?.move as any
         },
     },
 })
