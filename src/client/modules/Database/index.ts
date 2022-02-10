@@ -3,6 +3,7 @@ import crypto from "crypto";
 
 import prisma from './client'
 import { Socket, Server } from "socket.io";
+import { MATCH, WRAP } from "../../components";
 
 export const Database = (dependencies : IDependencies) => {
     dependencies.set("admin:database", prisma);
@@ -60,11 +61,16 @@ export const Database = (dependencies : IDependencies) => {
                 branch
             }
         })
+        const components = await prisma.component.findMany({
+            where : {
+                branch
+            }
+        })
         return {
             project,
             branch,
             files,
-            components : []
+            components,
         }
     }
     const io = dependencies.get("socket.io") as Server
@@ -160,6 +166,34 @@ export const Database = (dependencies : IDependencies) => {
             })
             io.to(`${domain}_${subdomain}`).emit("file.remove", req.body.id);
             res.status(200).end()
+        } catch(e) {
+            console.log(e)
+            res.status(400).end()
+        }
+    })
+    router.post("/api/component", async (req, res) => {
+        try { 
+            const {
+                domain,
+                subdomain
+            } = getMains(req.header("host"))
+            const component = await prisma.component.create({
+                data : {
+                    uiId : crypto.randomBytes(20).toString('hex'),                    
+                    props : {
+                        type : req.body.type,
+                        width : MATCH,
+                        height : WRAP,
+                        text : "THIS IS A TEST"
+                    },
+                    parentId : req.body.parentId,
+                    branchId : req.body.branchId,
+                    fileId : req.body.fileId,
+                }
+            })
+            io.to(`${domain}_${subdomain}`).emit("component.upsert", component);
+            res.status(200).end()
+
         } catch(e) {
             console.log(e)
             res.status(400).end()

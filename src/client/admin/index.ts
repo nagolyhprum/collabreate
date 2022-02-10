@@ -749,23 +749,20 @@ export const LeftPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
 const RootDropZone = stack<AdminState, AdminState>(100, 100, [
     onDrop(({
         global,
-        _
-    }) => set(global.components, _.concat(
-        global.components,
-        [{
+        fetch,
+        JSON
+    }) => fetch("api/component", {        
+        method : "POST",
+        headers : {
+            "Content-Type" : "application/json; charset=utf-8"
+        },
+        body : JSON.stringify({            
+            type : global.dragging,
+            parentId : null,
             branchId : global.branch.id,
             fileId : global.fileId,
-            parentId : null,
-            id : 0,
-            uiId : "0",
-            props : {
-                type : global.dragging,
-                width : 100,
-                height : 100,
-                text : "test"
-            }
-        }]
-    ))),
+        })
+    })),
     observe(({
         event,
         global,
@@ -787,24 +784,21 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
 const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
     onDrop(({
         global,
-        _,
+        fetch,
+        JSON,
         local
-    }) => set(global.components, _.concat(
-        global.components,
-        [{
+    }) => fetch("api/component", {        
+        method : "POST",
+        headers : {
+            "Content-Type" : "application/json; charset=utf-8"
+        },
+        body : JSON.stringify({            
+            type : global.dragging,
+            parentId : local.id,
             branchId : global.branch.id,
             fileId : global.fileId,
-            parentId : local.id,
-            id : 1,
-            uiId : "1",
-            props : {
-                type : global.dragging,
-                width : 100,
-                height : 100,
-                text : "test"
-            }
-        }]
-    ))),
+        })
+    })),
     observe(({
         event,
         global,
@@ -908,6 +902,9 @@ export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [
         socket,
         _
     }) => block([
+        socket.on("component.upsert", ({ data }) => block([
+            set(global.components, _.upsert(global.components, data))
+        ])),
         socket.on("file.upsert", ({ data }) => block([
             set(global.files, _.upsert(global.files, data))
         ])),

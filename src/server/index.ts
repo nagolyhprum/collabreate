@@ -160,7 +160,7 @@ function Component(component) {
     var cache = {};
     return new Proxy(component, {
         set : function(target, key, value) {
-            if(cache[key] !== value) {
+            if(!(key in cache) || cache[key] !== value) {
                 cache[key] = value;
                 switch(key) {
                     case "width":

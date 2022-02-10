@@ -47,7 +47,7 @@ model File {
     parent File? @relation(fields: [parentId], references: [id], name: "folder")
     children File[] @relation(name : "folder")
 
-    component Component?
+    components Component[]
 }
 
 model Component {
@@ -57,7 +57,7 @@ model Component {
     branchId String 
     branch Branch @relation(fields: [branchId], references: [id])
 
-    fileId Int 
+    fileId Int
     file File @relation(fields: [fileId], references: [id])
 
     parentId Int?
