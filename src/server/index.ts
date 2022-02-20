@@ -28,6 +28,11 @@ html, body, button {
     border : 0;
     font-size : 16px;
 }
+button {
+    background : green;
+    border-radius : 4px;
+    padding : 4px;
+}
 * { 
     box-sizing: border-box;
 }

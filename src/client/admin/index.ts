@@ -624,7 +624,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-const COMPONENTS = ["input", "button", "text"]
+const COMPONENTS = ["input", "button", "text", "column"]
 
 export const RightPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
     background("yellow"),
@@ -763,6 +763,7 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
             fileId : global.fileId,
         })
     })),
+    background("blue"),
     observe(({
         event,
         global,
@@ -770,10 +771,11 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
     }) => declare(({
         root
     }) => [
-        set(event.visible, and(not(eq(global.fileId, -1)), not(defined(root)))),
-        condition(eq(global.dragging, ""), set(event.background, "blue")).otherwise(
-            set(event.background, "green")
-        )
+        set(event.visible, and(
+            not(eq(global.fileId, -1)), 
+            not(defined(root)), 
+            not(eq(global.dragging, ""))
+        ))
     ], {
         root : _.find(global.components, ({ 
             item 
@@ -799,6 +801,7 @@ const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
             fileId : global.fileId,
         })
     })),
+    background("blue"),
     observe(({
         event,
         global,
@@ -807,10 +810,11 @@ const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
     }) => declare(({
         root
     }) => [
-        set(event.visible, and(not(eq(global.fileId, -1)), not(defined(root)))),
-        condition(eq(global.dragging, ""), set(event.background, "blue")).otherwise(
-            set(event.background, "green")
-        )
+        set(event.visible, and(
+            not(eq(global.fileId, -1)), 
+            or(not(defined(root)), eq((local.props as Prisma.JsonObject).type, "column")),
+            not(eq(global.dragging, ""))
+        ))
     ], {
         root : _.find(global.components, ({ 
             item 
@@ -830,6 +834,31 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
         adapter : (local.props as Prisma.JsonObject).type as string
     })])),
     adapters({
+        column : column(MATCH, MATCH, [
+            ComponentDropZone,
+            column(MATCH, MATCH, [
+                observe(({
+                    _,
+                    event,
+                    global,
+                    local
+                }) => set(event.data, _.map(
+                    _.filter(global.components, ({
+                        item
+                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                    ({
+                        item
+                    }) => result(_.assign<DBComponent | {
+                        adapter : string
+                    }>({}, item, {
+                        adapter : "local"
+                    }))
+                ))),
+                adapters({
+                    local : recursive(() => ComponentManager)
+                })            
+            ])
+        ]),
         input : input(MATCH, MATCH, [
         ]),
         button : button(MATCH, MATCH, [
