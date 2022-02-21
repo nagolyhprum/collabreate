@@ -57,7 +57,6 @@ describe('Admin', () => {
             id("move_modal_parent_select").select("Folder_0")
             id("move_modal_save_button").click()
             id("folder_component_children").contains("File_0")
-
         })
     })
 })

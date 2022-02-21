@@ -1,4 +1,4 @@
-import { add, and, block, condition, declare, defined, eq, not, or, result, set, symbol } from "../../language";
+import { add, and, block, condition, declare, defined, eq, fallback, not, or, result, set, sub, symbol } from "../../language";
 import {
     text,
     background,
@@ -39,8 +39,8 @@ const BoxModel = props<AdminState, DBComponent>([
         local,
         event
     }) => block([
-        set(event.width, (local.props as Prisma.JsonObject).width),
-        set(event.height, (local.props as Prisma.JsonObject).height),
+        set(event.width, (local.props as ComponentProps).width),
+        set(event.height, (local.props as ComponentProps).height),
     ]))
 ])
 
@@ -756,8 +756,11 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
         headers : {
             "Content-Type" : "application/json; charset=utf-8"
         },
-        body : JSON.stringify({            
-            type : global.dragging,
+        body : JSON.stringify({    
+            props : {
+                type : global.dragging,
+                index : 0
+            },
             parentId : null,
             branchId : global.branch.id,
             fileId : global.fileId,
@@ -783,7 +786,9 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
     }))
 ])
 
-const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
+const ComponentDropZone = stack<AdminState, DBComponent & {
+    index?: number
+}>(100, 100, [
     onDrop(({
         global,
         fetch,
@@ -795,7 +800,10 @@ const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
             "Content-Type" : "application/json; charset=utf-8"
         },
         body : JSON.stringify({            
-            type : global.dragging,
+            props : {
+                type : global.dragging,
+                index : fallback(local.index, 0)
+            },
             parentId : local.id,
             branchId : global.branch.id,
             fileId : global.fileId,
@@ -812,7 +820,7 @@ const ComponentDropZone = stack<AdminState, DBComponent>(100, 100, [
     }) => [
         set(event.visible, and(
             not(eq(global.fileId, -1)), 
-            or(not(defined(root)), eq((local.props as Prisma.JsonObject).type, "column")),
+            or(not(defined(root)), eq((local.props as ComponentProps).type, "column")),
             not(eq(global.dragging, ""))
         ))
     ], {
@@ -831,11 +839,42 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
     }) => set(event.data, [_.assign<DBComponent & {
         adapter : string
     }>({}, local, {
-        adapter : (local.props as Prisma.JsonObject).type as string
+        adapter : (local.props as ComponentProps).type as string
     })])),
     adapters({
-        column : column(MATCH, MATCH, [
-            ComponentDropZone,
+        column : column<AdminState, DBComponent>(MATCH, MATCH, [
+            // SET THE INDEX TO [0] - 1
+            stack(WRAP, WRAP, [
+                observe(({
+                    event,
+                    local,
+                    _,
+                    global    
+                }) => declare(({
+                    first
+                }) => [
+                    set(event.data, [_.assign<DBComponent & {
+                        index : number
+                        adapter : string
+                    }>({}, local, {
+                        index : sub((first.props as ComponentProps).index, 1),
+                        adapter : "local"
+                    })])
+                ], {
+                    first : fallback<{
+                        props : Prisma.JsonValue
+                    }>(symbol(_.filter(global.components, ({
+                        item
+                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))), 0), {
+                        props : {
+                            index : 1
+                        }
+                    })
+                })),
+                adapters({
+                    local : ComponentDropZone
+                })
+            ]),
             column(MATCH, MATCH, [
                 observe(({
                     _,
@@ -850,18 +889,45 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                         item
                     }) => result(_.assign<DBComponent | {
                         adapter : string
+                        parent : DBComponent
                     }>({}, item, {
-                        adapter : "local"
+                        adapter : "local",
+                        parent : local
                     }))
                 ))),
                 adapters({
-                    local : recursive(() => ComponentManager)
+                    local : column<AdminState, DBComponent & {
+                        parent : DBComponent
+                    }>(WRAP, WRAP, [
+                        recursive(() => ComponentManager as any),
+                        stack(WRAP, WRAP, [
+                            observe(({
+                                event,
+                                local,
+                                _,
+                                index
+                            }) => set(
+                                event.data,
+                                [_.assign<DBComponent & {
+                                    adapter : string
+                                    index : number
+                                }>({}, local.parent, {
+                                    adapter : "local",
+                                    // SET INDEX TO (([i] + [i + 1]) / 2) OR ([i] + 1)
+                                    index
+                                })]
+                            )),
+                            adapters({
+                                local : ComponentDropZone
+                            })
+                        ])
+                    ])
                 })            
             ])
         ]),
-        input : input(MATCH, MATCH, [
+        input : input<AdminState, DBComponent>(MATCH, MATCH, [
         ]),
-        button : button(MATCH, MATCH, [
+        button : button<AdminState, DBComponent>(MATCH, MATCH, [
             ComponentDropZone,
             stack(MATCH, MATCH, [
                 observe(({
@@ -886,11 +952,11 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                 })
             ])
         ]),
-        text : text(MATCH, MATCH, [
+        text : text<AdminState, DBComponent>(MATCH, MATCH, [
             observe(({
                 local,
                 event
-            }) => set(event.text, local.props.text))
+            }) => set(event.text, (local.props as ComponentProps).text))
         ]),
     })
 ])

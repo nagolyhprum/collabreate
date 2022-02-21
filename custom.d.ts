@@ -409,3 +409,11 @@ type RecursivePartial<T> = {
         T[Key] extends object ? RecursivePartial<T[Key]> :
         T[Key]
 }
+
+type ComponentProps = {
+    index : number
+    type : string
+    width : number
+    height : number
+    text : string
+}

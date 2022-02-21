@@ -242,7 +242,7 @@ export function symbol(
 	const path = useCode(variable);
 	const dependencies = new Set([]);
 	// TODO make this better
-	if(path._name === "fallback") {
+	if(path._name === "fallback" || path._name === "invoke") {
 		return proxy({
 			scope: {},
 			dependencies,
@@ -824,7 +824,7 @@ ${tabs}}`;
 	case "fallback": {
 		const value = render(code.value, tabs);
 		const fallback = render(code.fallback, tabs);
-		return `(${value} === null || ${value} === undefined ? ${fallback} : ${value})`;
+		return `(function(){var value = ${value};  return (value === null || value === undefined ? ${fallback} : value)})()`;
 	}
 	default:
 		// @ts-ignore

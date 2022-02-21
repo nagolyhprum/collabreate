@@ -675,5 +675,25 @@ describe("language", () => {
 		execute(output, scope)
 		expect(scope.ref.value).toBe("value")
 	})
-
+	it.only("can symbol and fallback on functions", () => {
+		const dependencies = new Set([]);
+		const output = code(({
+			_,
+			console
+		}) => block([
+			console.log(fallback(symbol(_.filter([], ({ item }) => result(item)), 0), true))
+		]), dependencies);
+		expect(render(output, "")).toMatchSnapshot()
+		const log = jest.fn(() => {
+			// DO NOTHING
+		});
+		execute(output, {
+			console: {
+				...console,
+				log
+			}
+		});
+		expect(log).toBeCalledWith(true);
+		expect(log).toBeCalledTimes(1);
+	})
 });

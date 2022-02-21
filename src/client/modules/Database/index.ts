@@ -181,7 +181,8 @@ export const Database = (dependencies : IDependencies) => {
                 data : {
                     uiId : crypto.randomBytes(20).toString('hex'),                    
                     props : {
-                        type : req.body.type,
+                        type : req.body.props.type,
+                        index : req.body.props.index,
                         width : MATCH,
                         height : WRAP,
                         text : "THIS IS A TEST"

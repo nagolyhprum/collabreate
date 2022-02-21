@@ -40,6 +40,13 @@ console.log(length);"
 
 exports[`language can set a string 1`] = `"ref.value = \\"value\\";"`;
 
+exports[`language can symbol and fallback on functions 1`] = `
+"console.log((function(){var value = _.filter([], function (args) {
+	var item = args.item;
+	return item;
+})[0];  return (value === null || value === undefined ? true : value)})());"
+`;
+
 exports[`language chains functions 1`] = `"(\\"_\\" + Math.random().toString(16).substr(2) + Date.now().toString(16))"`;
 
 exports[`language chains on symbol 1`] = `
