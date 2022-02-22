@@ -626,7 +626,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
     ])
 ])
 
-const COMPONENTS = ["input", "button", "text", "column"]
+const COMPONENTS = ["input", "button", "text", "column", "row"]
 
 export const RightPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
     background("yellow"),
@@ -822,7 +822,7 @@ const ComponentDropZone = stack<AdminState, DBComponent & {
     }) => [
         set(event.visible, and(
             not(eq(global.fileId, -1)), 
-            or(not(defined(root)), eq((local.props as ComponentProps).type, "column")),
+            or(not(defined(root)), eq((local.props as ComponentProps).type, "column"), eq((local.props as ComponentProps).type, "row")),
             not(eq(global.dragging, ""))
         ))
     ], {
@@ -915,6 +915,105 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                 ))),
                 adapters({
                     local : column<AdminState, DBComponent & {
+                        parent : DBComponent
+                        index : number
+                    }>(WRAP, WRAP, [
+                        recursive(() => ComponentManager as any),
+                        stack(WRAP, WRAP, [
+                            observe(({
+                                event,
+                                local,
+                                _
+                            }) => set(
+                                event.data,
+                                [_.assign<DBComponent & Data & {
+                                    index : number
+                                }>({}, local.parent, {
+                                    adapter : "local",
+                                    index : local.index
+                                })]
+                            )),
+                            adapters({
+                                local : ComponentDropZone
+                            })
+                        ])
+                    ])
+                })            
+            ])
+        ]),
+        row : row<AdminState, DBComponent>(MATCH, MATCH, [
+            stack(WRAP, WRAP, [
+                observe(({
+                    event,
+                    local,
+                    _,
+                    global    
+                }) => declare(({
+                    first
+                }) => [
+                    set(event.data, [_.assign<DBComponent & Data &  {
+                        index : number
+                    }>({}, local, {
+                        index : sub((first.props as ComponentProps).index, 1),
+                        adapter : "local"
+                    })])
+                ], {
+                    first : fallback<{
+                        props : Prisma.JsonValue
+                    }>(symbol(_.sort(
+                        _.filter(global.components, ({
+                            item
+                        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                        ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                    )
+                    , 0), {
+                        props : {
+                            index : 1
+                        }
+                    })
+                })),
+                adapters({
+                    local : ComponentDropZone
+                })
+            ]),
+            row(MATCH, MATCH, [
+                observe(({
+                    _,
+                    event,
+                    global,
+                    local
+                }) => set(event.data, _.map(
+                    _.sort(
+                        _.filter(global.components, ({
+                            item
+                        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                        ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                    ),
+                    ({
+                        item,
+                        index,
+                        items
+                    }) => result(_.assign<DBComponent | {
+                        adapter : string
+                        parent : DBComponent
+                        index : number
+                    }>({}, item, {
+                        adapter : "local",
+                        parent : local,
+                        index : div(add(
+                            (item.props as ComponentProps).index, 
+                            (fallback<{
+                                props : Prisma.JsonValue
+                            }>(symbol(items, add(index, 1)), {
+                                props : {
+                                    index : add((item.props as ComponentProps).index, 2)
+                                }
+                            }).props as ComponentProps).index
+                        ), 2)
+                    }))
+                ))),
+                adapters({
+                    local : row<AdminState, DBComponent & {
                         parent : DBComponent
                         index : number
                     }>(WRAP, WRAP, [
