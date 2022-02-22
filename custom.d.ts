@@ -302,6 +302,7 @@ type UnderscoreProgramming = {
     map: <T, U>(items: T[], callback: (args: {
         item: T
         index: number
+        items : T[]
     }) => ProgrammingLanguage) => U[]
     filter: <T>(items: T[], callback: (args: {
         item: T

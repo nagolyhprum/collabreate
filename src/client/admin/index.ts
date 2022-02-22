@@ -1,4 +1,4 @@
-import { add, and, block, condition, declare, defined, eq, fallback, not, or, result, set, sub, symbol } from "../../language";
+import { add, and, block, condition, declare, defined, div, eq, fallback, not, or, result, set, sub, symbol } from "../../language";
 import {
     text,
     background,
@@ -843,7 +843,6 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
     })])),
     adapters({
         column : column<AdminState, DBComponent>(MATCH, MATCH, [
-            // SET THE INDEX TO [0] - 1
             stack(WRAP, WRAP, [
                 observe(({
                     event,
@@ -863,9 +862,13 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                 ], {
                     first : fallback<{
                         props : Prisma.JsonValue
-                    }>(symbol(_.filter(global.components, ({
-                        item
-                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))), 0), {
+                    }>(symbol(_.sort(
+                        _.filter(global.components, ({
+                            item
+                        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                        ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                    )
+                    , 0), {
                         props : {
                             index : 1
                         }
@@ -882,30 +885,46 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                     global,
                     local
                 }) => set(event.data, _.map(
-                    _.filter(global.components, ({
-                        item
-                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                    _.sort(
+                        _.filter(global.components, ({
+                            item
+                        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                        ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                    ),
                     ({
-                        item
+                        item,
+                        index,
+                        items
                     }) => result(_.assign<DBComponent | {
                         adapter : string
                         parent : DBComponent
+                        index : number
                     }>({}, item, {
                         adapter : "local",
-                        parent : local
+                        parent : local,
+                        index : div(add(
+                            (item.props as ComponentProps).index, 
+                            (fallback<{
+                                props : Prisma.JsonValue
+                            }>(symbol(items, add(index, 1)), {
+                                props : {
+                                    index : (item.props as ComponentProps).index
+                                }
+                            }).props as ComponentProps).index
+                        ), 2)
                     }))
                 ))),
                 adapters({
                     local : column<AdminState, DBComponent & {
                         parent : DBComponent
+                        index : number
                     }>(WRAP, WRAP, [
                         recursive(() => ComponentManager as any),
                         stack(WRAP, WRAP, [
                             observe(({
                                 event,
                                 local,
-                                _,
-                                index
+                                _
                             }) => set(
                                 event.data,
                                 [_.assign<DBComponent & {
@@ -913,8 +932,7 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                                     index : number
                                 }>({}, local.parent, {
                                     adapter : "local",
-                                    // SET INDEX TO (([i] + [i + 1]) / 2) OR ([i] + 1)
-                                    index
+                                    index : local.index
                                 })]
                             )),
                             adapters({
@@ -936,9 +954,12 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                     global,
                     local
                 }) => set(event.data, _.map(
-                    _.filter(global.components, ({
-                        item
-                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                    _.sort(
+                        _.filter(global.components, ({
+                            item
+                        }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, local.id)))),
+                        ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                    ),
                     ({
                         item
                     }) => result(_.assign<DBComponent | {
@@ -971,9 +992,12 @@ export const Preview = column<AdminState, AdminState>(0, MATCH, [
             event,
             global,
         }) => set(event.data, _.map(
-            _.filter(global.components, ({
-                item
-            }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null)))),
+            _.sort(
+                _.filter(global.components, ({
+                    item
+                }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null)))),
+                ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+            ),
             ({
                 item
             }) => result(_.assign<DBComponent | {

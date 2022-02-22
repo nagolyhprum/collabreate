@@ -55,6 +55,14 @@ var socket = (function () {
     };
 })();
 var _ = {
+    sort : function(list, callback) {
+        return list.sort(function (a, b) {
+            return callback({
+                a : a,
+                b : b
+            });
+        });
+    },
     reduce : function(list, callback, start) {
         return list.reduce(function(total, item) {
             return callback({
@@ -78,10 +86,11 @@ var _ = {
         return Object.assign.apply(null, arguments);
     },
     map : function(list, callback) {
-        return list.map(function(item, index) {
+        return list.map(function(item, index, items) {
             return callback({
                 item : item,
-                index : index
+                index : index,
+                items : items
             })
         })
     },
