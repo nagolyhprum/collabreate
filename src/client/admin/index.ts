@@ -536,6 +536,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                 _
             }) => block([
                 set(event.data, _.concat([{
+                    id : "",
                     adapter : "option",
                     label : "<root>",
                     value : "null"
@@ -549,6 +550,7 @@ export const MoveModal = stack<AdminState, AdminState>(MATCH, MATCH, [
                             )
                         )),
                         ({ item }) => result({
+                            id : item.id,
                             adapter : "option",
                             label : item.name,
                             value : item.id
@@ -746,7 +748,7 @@ export const LeftPanel = scrollable<AdminState, AdminState>(.3, MATCH, [
     ]),
 ])
 
-const RootDropZone = stack<AdminState, AdminState>(100, 100, [
+const RootDropZone = stack<AdminState, AdminState>(48, 48, [
     onDrop(({
         global,
         fetch,
@@ -788,12 +790,12 @@ const RootDropZone = stack<AdminState, AdminState>(100, 100, [
 
 const ComponentDropZone = stack<AdminState, DBComponent & {
     index?: number
-}>(100, 100, [
+}>(48, 48, [
     onDrop(({
         global,
         fetch,
         JSON,
-        local
+        local,
     }) => fetch("api/component", {        
         method : "POST",
         headers : {
@@ -836,9 +838,7 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
         event,
         local,
         _,
-    }) => set(event.data, [_.assign<DBComponent & {
-        adapter : string
-    }>({}, local, {
+    }) => set(event.data, [_.assign<DBComponent & Data>({}, local, {
         adapter : (local.props as ComponentProps).type as string
     })])),
     adapters({
@@ -852,9 +852,8 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                 }) => declare(({
                     first
                 }) => [
-                    set(event.data, [_.assign<DBComponent & {
+                    set(event.data, [_.assign<DBComponent & Data &  {
                         index : number
-                        adapter : string
                     }>({}, local, {
                         index : sub((first.props as ComponentProps).index, 1),
                         adapter : "local"
@@ -908,7 +907,7 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                                 props : Prisma.JsonValue
                             }>(symbol(items, add(index, 1)), {
                                 props : {
-                                    index : (item.props as ComponentProps).index
+                                    index : add((item.props as ComponentProps).index, 2)
                                 }
                             }).props as ComponentProps).index
                         ), 2)
@@ -927,8 +926,7 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
                                 _
                             }) => set(
                                 event.data,
-                                [_.assign<DBComponent & {
-                                    adapter : string
+                                [_.assign<DBComponent & Data & {
                                     index : number
                                 }>({}, local.parent, {
                                     adapter : "local",
@@ -982,34 +980,36 @@ const ComponentManager : ComponentFromConfig<AdminState, DBComponent> = stack<Ad
     })
 ])
 
-export const Preview = column<AdminState, AdminState>(0, MATCH, [
+export const Preview = scrollable<AdminState, AdminState>(0, MATCH, [
     grow(true),
-    background("purple"),
-    RootDropZone,
-    stack(WRAP, WRAP, [
-        observe(({
-            _,
-            event,
-            global,
-        }) => set(event.data, _.map(
-            _.sort(
-                _.filter(global.components, ({
+    column(MATCH, MATCH, [
+        background("purple"),
+        RootDropZone,
+        stack(WRAP, WRAP, [
+            observe(({
+                _,
+                event,
+                global,
+            }) => set(event.data, _.map(
+                _.sort(
+                    _.filter(global.components, ({
+                        item
+                    }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null)))),
+                    ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
+                ),
+                ({
                     item
-                }) => result(and(eq(item.fileId, global.fileId), eq(item.parentId, null)))),
-                ({ a, b }) => result(sub((a.props as ComponentProps).index, (b.props as ComponentProps).index))
-            ),
-            ({
-                item
-            }) => result(_.assign<DBComponent | {
-                adapter : string
-            }>({}, item, {
-                adapter : "local"
-            }))
-        ))),
-        adapters({
-            local : ComponentManager
-        })
-    ])
+                }) => result(_.assign<DBComponent | {
+                    adapter : string
+                }>({}, item, {
+                    adapter : "local"
+                }))
+            ))),
+            adapters({
+                local : ComponentManager
+            })
+        ])
+    ]),
 ])
 
 export const Editor = row<AdminState, AdminState>(MATCH, MATCH, [

@@ -129,11 +129,17 @@ type Component<Global extends GlobalState, Local> = ComponentBoxProps & Componen
     background?: string
     grow?: boolean
     adapters?: Adapter<Global>
-    data?: Array<Record<string, unknown> & {
-        adapter : string
-    }>
+    data?: Data[]
     value?: any
 }
+
+type Data = Record<string, unknown> & {
+    adapter : string
+} & ({
+    key : string
+} | {
+    id : string
+})
 
 type Adapter<Global extends GlobalState> = {
     [key : string] : ComponentFromConfig<Global, any>

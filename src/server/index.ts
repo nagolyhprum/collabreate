@@ -72,11 +72,11 @@ var _ = {
         }, start);
     },
     upsert : function(list, upsert) {
-        const item = list.find(function(item) {
+        var item = list.find(function(item) {
             return (item.id && upsert.id && item.id === upsert.id) || (item.key && upsert.key && item.key === upsert.key)
         })
         if(item) {
-            const index = list.indexOf(item);
+            var index = list.indexOf(item);
             return [].concat(list.slice(0, index), [Object.assign(item, upsert)], list.slice(index + 1));
         } else {
             return list.concat([upsert]);
@@ -173,6 +173,11 @@ function numberToMeasurement(input) {
 function Component(component) {
     var cache = {};
     return new Proxy(component, {
+        get : function(target, key) {
+            if(key === "isMounted") {
+                return document.body.contains(component);
+            }
+        },
         set : function(target, key, value) {
             if(!(key in cache) || cache[key] !== value) {
                 cache[key] = value;
@@ -198,14 +203,38 @@ function Component(component) {
                         target.innerText = value;
                         return;
                     case "data":
-                        // LETS BE LAZY
-                        target.innerHTML = "";
-                        for(var index = 0; index < value.length; index++) {
-                            var item = value[index];
-                            var child = adapters[target.dataset.id + "_" + item.adapter]();
-                            bind(child, Local(item, index))
-                            target.appendChild(child)
+                        var prev = cache.prevData || [];
+                        var curr = value.map(function(it) {
+                            return "id" in it ? it.id : it.key;
+                        });
+                        // REMOVE
+                        var removed = [];
+                        for(var i = prev.length - 1; i >= 0; i--) {
+                            if(!curr.includes(prev[i])) {
+                                prev.splice(i, 1);
+                                removed.push(target.removeChild(target.children[i]));
+                            }
                         }
+                        // ADD
+                        for(var i = 0; i < curr.length; i++) {
+                            if(!prev.includes(curr[i])) {
+                                var item = value[i];
+                                // TODO : ATTEMPT TO REUSE REMOVED COMPONENTS
+                                var child = adapters[target.dataset.id + "_" + item.adapter]();
+                                bind(child, Local(item, i))
+                                if(i < target.children.length) {
+                                    target.insertBefore(child, target.children[i]);
+                                } else {
+                                    target.appendChild(child);
+                                }
+                            }
+                        }
+                        // MOVE / UPDATE
+                        for(var i = 0; i < value.length; i++) {
+                            target.children[i].__local__.value = value[i];
+                            target.children[i].__local__.index = i;
+                        }
+                        cache.prevData = curr;
                         target.value = cache.value;
                         return;
                     case "background":
@@ -226,11 +255,15 @@ var update = (function() {
         timeout = setTimeout(function() {
             listeners.forEach(function (listener) {
                 listener.callback(listener.local.value, listener.local.index, listener.component)
-            })
+            });        
+            listeners = listeners.filter(function(listener) {
+                return listener.component.isMounted;
+            });
         });
     }
 })();
 function bind(root, local) {
+    root.__local__ = local;
     Array.from(root.querySelectorAll("[data-id]")).concat(root.dataset.id ? [root] : []).forEach(function(component) {
         var toBind = events[component.dataset.id];
         Object.keys(toBind).forEach(function(event) {
